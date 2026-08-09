@@ -1,6 +1,10 @@
 # ADR-0037: Enterprise Execution Pipeline & Runtime Semantics
 
-Status: Implemented
+**Status:** Accepted
+
+**Ratified:** 2026-08-10 as part of the beta structural phase. The runtime
+semantics in this ADR are implemented in `mirror_core` (compiled-plan execution,
+DAG pipelines, middleware boundary, policy invocation). See also ADR-0025.
 Date: 2026-08-07
 Scope: Pipeline compilation, execution semantics, middleware behavior, retries, cancellation, provenance, and runtime policy contracts
 Related ADRs: ADR-0001 Entry Points, ADR-0002 DAG Pipeline, ADR-0003 Resource Envelope, ADR-0004 Capability / Provider Model

@@ -1,6 +1,11 @@
 # ADR-0030: Metadata Store Architecture
 
-Status: Proposed
+**Status:** Accepted
+
+**Ratified:** 2026-08-10 as part of the beta structural phase. The in-kernel
+metadata store is implemented in `mirror_core.metadata` and re-exported from
+`mirror_core.storage`. ADR-0042 extends this decision with the independent,
+swappable `mirror_database` backend family for the operational schema.
 
 ## Context
 

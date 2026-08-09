@@ -1,9 +1,13 @@
 # ADR-0036: Operational Development Stack and Deployment Baseline
 
-- **Status:** Proposed
+- **Status:** Accepted
+
+- **Ratified:** 2026-08-10 as part of the beta structural phase. The Docker
+  Compose reference stack (PostgreSQL, Redis, Celery worker, Ollama, Chroma,
+  OpenSearch) is the deployment baseline used by the ADR-0049 beta release gate.
 - **Date:** 2026-08-07
 - **Scope:** Local development stack, Docker Compose, Redis, Celery, PostgreSQL metadata, artifact storage, and deployment baseline
-- **Related ADRs:** ADR-0030 Metadata Store Architecture, ADR-0031 Scheduler Backend Architecture, ADR-0032 Distributed Worker Architecture, ADR-0035 Certification, Smoke Tests, and Lab Validation Strategy
+- **Related ADRs:** ADR-0030 Metadata Store Architecture, ADR-0031 Scheduler Backend Architecture, ADR-0052 Distributed Worker Architecture, ADR-0035 Certification, Smoke Tests, and Lab Validation Strategy
 
 ## Context
 

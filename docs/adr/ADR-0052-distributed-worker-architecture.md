@@ -1,6 +1,13 @@
-# ADR-0032: Distributed Worker Architecture
+# ADR-0052: Distributed Worker Architecture
 
-Status: Proposed
+**Status:** Accepted
+
+**Ratified:** 2026-08-10 as part of the beta structural phase. This ADR was
+originally drafted as ADR-0032 and renumbered to 0052 to avoid collision with
+the accepted ADR-0032 (Distributed execution with Celery, Redis, and
+PostgreSQL). The worker abstraction is implemented as the `WorkerBackend`
+contract in Core, with SQLite, PostgreSQL, and Celery/Redis backends. See also
+ADR-0006 and ADR-0048.
 
 ## Context
 

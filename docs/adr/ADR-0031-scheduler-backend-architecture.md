@@ -1,6 +1,10 @@
 # ADR-0031: Scheduler Backend Architecture
 
-Status: Proposed
+**Status:** Accepted
+
+**Ratified:** 2026-08-10 as part of the beta structural phase. The scheduler
+graduated into the stable core package (`mirror_core.scheduler`); workers execute
+runs, and schedulers only create/enqueue them, per this decision.
 
 ## Context
 

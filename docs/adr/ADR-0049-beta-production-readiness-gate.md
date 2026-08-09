@@ -82,3 +82,12 @@ certified" (CLAUDE.md §13).
 - Interface commands stop over-claiming.
 - The release checklist becomes genuinely reproducible.
 - Live certification evidence is part of the release handover.
+
+## Related ADRs
+
+- ADR-0035 (certification, smoke tests, and lab validation strategy) — the
+  certification layers this gate operationalizes.
+- ADR-0036 (operational development stack and deployment baseline) — the Docker
+  stack the lab runs against.
+- ADR-0047 (knowledge/RAG ecosystem saturation) — the backends certified at
+  Level 5/6.

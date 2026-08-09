@@ -119,7 +119,14 @@ The following ideas are tracked as proposed ADRs rather than alpha commitments:
 Accepted since the alpha roadmap was written: the open-source-first provider
 policy (ADR-0033), the capability expansion and vertical ecosystem model
 (ADR-0034, ratified by ADR-0046), the knowledge-infrastructure capability model
-(ADR-0026), and the trusted execution pipeline (ADR-0027).
+(ADR-0026), and the trusted execution pipeline (ADR-0027). During the beta
+structural phase the remaining proposed drafts were promoted to accepted as
+their decisions were already implemented: ADR-0030 (metadata store),
+ADR-0031 (scheduler backend), ADR-0035 (certification/lab validation),
+ADR-0036 (operational stack), ADR-0037 (enterprise execution semantics),
+ADR-0038 (executor decomposition), and ADR-0052 (distributed worker
+architecture). The ADR record is now complete: ADR-0001 through ADR-0052, no
+open drafts.
 
 ## Phase D — Certification and interface convergence
 

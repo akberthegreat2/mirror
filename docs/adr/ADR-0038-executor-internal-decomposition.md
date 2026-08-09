@@ -1,6 +1,11 @@
 # ADR-0038: Executor Internal Decomposition
 
-Status: Implemented
+**Status:** Accepted
+
+**Ratified:** 2026-08-10 as part of the beta structural phase. The decomposition
+is implemented: the monolithic executor was split into directory-package
+collaborators (`executor/` package) while preserving the public orchestration
+API. Resolves the beta-review P2 executor-decomposition backlog item.
 Date: 2026-08-07
 Scope: Decompose the internal mechanisms of `mirror_core.executor.Executor` into small collaborators while preserving the public orchestration API
 Related ADRs: ADR-0004 Executor and Execution Run, ADR-0025 Execution Semantics and Runtime Policies, ADR-0027 Trusted Execution Pipeline, ADR-0037 Enterprise Execution Pipeline & Runtime Semantics

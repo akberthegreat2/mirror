@@ -1,6 +1,12 @@
 # ADR-0035: Certification, Smoke Tests, and Lab Validation Strategy
 
-- **Status:** Proposed
+- **Status:** Accepted
+
+- **Ratified:** 2026-08-10 as part of the beta structural phase. The
+  certification layers (install/import/discovery smoke tests, contract
+  conformance, real-backend validation) are operationalized for beta by
+  ADR-0049 and documented in `docs/testing/` (`LEGAL_TEST_SITES.md`,
+  `BETA_GAUNTLET.md`, `LAB_CERTIFICATION.md`).
 - **Date:** 2026-08-07
 - **Scope:** Package certification, smoke tests, import tests, discovery validation, compatibility matrix, and lab-style end-to-end validation
 - **Related ADRs:** ADR-0002 Discovery and Entry Points, ADR-0024 Capability Package Boundaries, ADR-0027 Trusted Execution Pipeline, ADR-0034 Capability Expansion and Vertical Ecosystem Model

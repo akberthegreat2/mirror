@@ -35,9 +35,15 @@ contracts.
 - ADR-0027 trusted execution pipeline
 - ADR-0028 extension model and plugin lifecycle
 - ADR-0029 distributed execution and Celery worker integration
+- ADR-0030 metadata store architecture
+- ADR-0031 scheduler backend architecture
 - ADR-0032 distributed execution with Celery, Redis, and PostgreSQL
 - ADR-0033 open-source-first provider policy
 - ADR-0034 capability expansion and vertical ecosystem model
+- ADR-0035 certification, smoke tests, and lab validation strategy
+- ADR-0036 operational development stack and deployment baseline
+- ADR-0037 enterprise execution pipeline & runtime semantics
+- ADR-0038 executor internal decomposition
 - ADR-0039 beta certification and interface projection
 - ADR-0040 lease reclamation and durable-store certification
 - ADR-0041 core test isolation and safe metadata decoding
@@ -51,15 +57,19 @@ contracts.
 - ADR-0049 beta production-readiness gate
 - ADR-0050 remaining review hardening
 - ADR-0051 reference provider retirement and industry-grade replacement
+- ADR-0052 distributed worker architecture
 
 ## Future drafts
 
-Proposed ADR drafts preserved for later implementation work live in `docs/adr/future/`:
+As of the beta structural phase (2026-08-10), every proposed draft in
+`docs/adr/future/` has been promoted to accepted status — the decisions they
+record were already implemented in the codebase, and they are now ratified:
 
-- ADR-0030 — Metadata Store Architecture
-- ADR-0031 — Scheduler Backend Architecture
-- ADR-0032 — Distributed Worker Architecture
-- ADR-0035 — Certification, Smoke Tests, and Lab Validation Strategy
-- ADR-0036 — Operational Development Stack and Deployment Baseline
-- ADR-0037 — Enterprise Execution Pipeline & Runtime Semantics
-- ADR-0038 — Executor Internal Decomposition
+- ADR-0030 (metadata store), ADR-0031 (scheduler backend),
+  ADR-0035 (certification/lab validation), ADR-0036 (operational stack),
+  ADR-0037 (enterprise execution semantics), ADR-0038 (executor decomposition),
+  and ADR-0052 (distributed worker architecture, renumbered from draft 0032 to
+  avoid collision with the accepted ADR-0032).
+
+The directory is preserved for future proposals; there are no open drafts
+today.
