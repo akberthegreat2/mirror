@@ -28,6 +28,7 @@ from mirror_core.metadata import MetadataStore
 from mirror_core.middleware import MiddlewareChain
 from mirror_core.planner import ExecutionPlan
 from mirror_core.resource import ResourceEnvelope
+from mirror_core.storage import BlobStore
 from mirror_core.workers import CheckpointStore, DeadLetterQueue
 
 
@@ -52,6 +53,7 @@ class Executor(
         checkpoint_store: CheckpointStore | None = None,
         dead_letter_queue: DeadLetterQueue | None = None,
         metadata_store: MetadataStore | None = None,
+        blob_store: BlobStore | None = None,
         compensation_handler: CompensationHandler | None = None,
     ) -> None:
         if max_concurrency < 1:
@@ -64,6 +66,7 @@ class Executor(
         self.checkpoint_store = checkpoint_store
         self.dead_letter_queue = dead_letter_queue
         self.metadata_store = metadata_store
+        self.blob_store = blob_store
         self.compensation_handler = compensation_handler
         self._condition_evaluator = ConditionEvaluator()
         self._checkpoint_coordinator = self._build_checkpoint_coordinator()

@@ -57,6 +57,8 @@ class ContextMixin:
             execution_context=execution_context,
             capability_context=capability_context,
             middleware_context=middleware_context,
+            metadata_store=self.metadata_store,
+            blob_store=self.blob_store,
         )
 
     def _build_invocation(

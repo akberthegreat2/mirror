@@ -32,6 +32,7 @@ from mirror_core.metadata import MetadataRecord, MetadataStore
 from mirror_core.middleware import MiddlewareChain, MiddlewareContext, MiddlewareInvocation
 from mirror_core.planner import CompiledStep, ExecutionPlan
 from mirror_core.resource import ProducerRef, ResourceEnvelope
+from mirror_core.storage import BlobStore
 from mirror_core.workers import CheckpointStore, DeadLetterQueue
 
 
@@ -42,6 +43,7 @@ class ExecutorProto(Protocol):
     middleware_chain: MiddlewareChain | None
     middleware_chains: Mapping[str, MiddlewareChain]
     metadata_store: MetadataStore | None
+    blob_store: BlobStore | None
     checkpoint_store: CheckpointStore | None
     dead_letter_queue: DeadLetterQueue | None
     compensation_handler: CompensationHandler | None
