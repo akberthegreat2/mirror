@@ -22,12 +22,12 @@ from mirror_core.planner import CompiledStep
 from mirror_core.resource import ProducerRef, ResourceEnvelope
 
 if TYPE_CHECKING:
-    from mirror_core.executor.executor import Executor
+    from mirror_core.executor.protocol import ExecutorProto
 
 
 class InvocationMixin:
     async def _run_step(
-        self,
+        self: ExecutorProto,
         run: ExecutionRun,
         step_id: str,
         semaphore: asyncio.Semaphore,
@@ -45,7 +45,7 @@ class InvocationMixin:
             await self._invoke_step(run, compiled, step, inputs, runner_override)
 
     async def _prepare_step(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         compiled: CompiledStep,
         step: Any,
@@ -73,7 +73,7 @@ class InvocationMixin:
         return True
 
     async def _invoke_step(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         compiled: CompiledStep,
         step: Any,
@@ -136,7 +136,7 @@ class InvocationMixin:
         )
 
     async def _invoke_with_fallbacks(
-        self: Executor,
+        self: ExecutorProto,
         compiled: CompiledStep,
         request: BaseModel,
         runner: Runner,
@@ -145,7 +145,7 @@ class InvocationMixin:
         return await self._policy_invoker.invoke_with_fallbacks(compiled, request, runner, run)
 
     async def _invoke_with_policies(
-        self: Executor,
+        self: ExecutorProto,
         compiled: CompiledStep,
         provider: Any,
         provider_config: Any,
@@ -156,7 +156,7 @@ class InvocationMixin:
         return await self._policy_invoker.invoke_with_policies(compiled, provider, provider_config, request, runner, run)
 
     async def _invoke(
-        self: Executor,
+        self: ExecutorProto,
         compiled: CompiledStep,
         provider: Any,
         provider_config: Any,
@@ -209,7 +209,7 @@ class InvocationMixin:
             raise ExecutionError(f"Invalid runner import path: {path!r}")
         return cast(Runner, getattr(importlib.import_module(module_path), name))
 
-    def _get_provider(self: Executor, compiled: CompiledStep, provider_config: Any) -> Any:
+    def _get_provider(self: ExecutorProto, compiled: CompiledStep, provider_config: Any) -> Any:
         exact_key = (compiled.capability.name, provider_config.name)
         if exact_key in self.components:
             return self.components[exact_key]

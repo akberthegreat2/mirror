@@ -14,6 +14,7 @@ from mirror_core.executor.invocation import InvocationMixin
 from mirror_core.executor.metadata import MetadataMixin
 from mirror_core.executor.models import ExecutionResult, ExecutionRun, RunOutcome
 from mirror_core.executor.policy import PolicyMixin
+from mirror_core.executor.protocol import ExecutorProto
 from mirror_core.executor.resume import ResumeMixin
 from mirror_core.executor.scheduling import SchedulingMixin
 from mirror_core.executor.types import CompensationHandler, Runner
@@ -37,6 +38,7 @@ class Executor(
     MetadataMixin,
     PolicyMixin,
     ResumeMixin,
+    ExecutorProto,
 ):
     """Reusable DAG engine that creates isolated execution runs."""
 

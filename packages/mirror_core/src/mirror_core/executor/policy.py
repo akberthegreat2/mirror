@@ -10,12 +10,12 @@ from mirror_core.metadata import MetadataRecord
 from mirror_core.planner import CompiledStep
 
 if TYPE_CHECKING:
-    from mirror_core.executor.executor import Executor
+    from mirror_core.executor.protocol import ExecutorProto
 
 
 class PolicyMixin:
     async def _handle_step_failure(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         compiled: CompiledStep,
         step: Any,
@@ -67,12 +67,12 @@ class PolicyMixin:
                     pending.append(step_id)
 
     async def _invoke_compensation(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         compiled: CompiledStep,
         error: Exception,
     ) -> None:
         await self._compensation_invoker.invoke(run, compiled, error)
 
-    async def _record_dead_letter(self: Executor, run: ExecutionRun, result: ExecutionResult) -> None:
+    async def _record_dead_letter(self: ExecutorProto, run: ExecutionRun, result: ExecutionResult) -> None:
         self._dead_letter_recorder.record(run, result)

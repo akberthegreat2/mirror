@@ -13,7 +13,7 @@ from mirror_core.middleware import MiddlewareContext, MiddlewareInvocation
 from mirror_core.planner import CompiledStep
 
 if TYPE_CHECKING:
-    from mirror_core.executor.executor import Executor
+    from mirror_core.executor.protocol import ExecutorProto
 
 
 class ContextMixin:
@@ -45,7 +45,7 @@ class ContextMixin:
         )
 
     def _build_runner_context(
-        self: Executor,
+        self: ExecutorProto,
         execution_context: ExecutionContext,
         capability_context: CapabilityContext,
         step_id: str,
@@ -60,7 +60,7 @@ class ContextMixin:
         )
 
     def _build_invocation(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         compiled: CompiledStep,
         request: BaseModel,

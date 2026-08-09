@@ -13,12 +13,12 @@ from mirror_core.metadata import MetadataRecord
 from mirror_core.planner import CompiledStep, ExecutionPlan
 
 if TYPE_CHECKING:
-    from mirror_core.executor.executor import Executor
+    from mirror_core.executor.protocol import ExecutorProto
 
 
 class ResumeMixin:
     async def resume_from_checkpoint(
-        self: Executor,
+        self: ExecutorProto,
         plan: ExecutionPlan,
         *,
         run_id: UUID,
@@ -54,7 +54,7 @@ class ResumeMixin:
         )
 
     async def replay_dead_letter(
-        self: Executor,
+        self: ExecutorProto,
         plan: ExecutionPlan,
         *,
         run_id: UUID,
@@ -80,7 +80,7 @@ class ResumeMixin:
         )
 
     def _restore_from_checkpoint(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         resume_from: tuple[UUID, str],
     ) -> None:
@@ -95,5 +95,5 @@ class ResumeMixin:
             step_id=step_id,
         )
 
-    def _save_checkpoint(self: Executor, run: ExecutionRun, compiled: CompiledStep, step: Any) -> None:
+    def _save_checkpoint(self: ExecutorProto, run: ExecutionRun, compiled: CompiledStep, step: Any) -> None:
         self._checkpoint_coordinator.save(run, step)

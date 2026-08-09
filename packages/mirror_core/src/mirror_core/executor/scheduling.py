@@ -6,16 +6,17 @@ import asyncio
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from mirror_core.executor.models import ExecutionPlan, ExecutionResult, ExecutionRun, StepState
+from mirror_core.executor.models import ExecutionResult, ExecutionRun, StepState
 from mirror_core.executor.types import Runner
+from mirror_core.planner import ExecutionPlan
 
 if TYPE_CHECKING:
-    from mirror_core.executor.executor import Executor
+    from mirror_core.executor.protocol import ExecutorProto
 
 
 class SchedulingMixin:
     async def _drive_run(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         plan: ExecutionPlan,
         runner: Runner | None,
@@ -42,7 +43,7 @@ class SchedulingMixin:
         return [step_id for step_id in run.plan.order if step_id in pending and self._can_run(run, step_id)]
 
     async def _schedule_ready_steps(
-        self: Executor,
+        self: ExecutorProto,
         run: ExecutionRun,
         ready: list[str],
         semaphore: asyncio.Semaphore,
@@ -96,7 +97,7 @@ class SchedulingMixin:
             if step_id != except_step and not task.done():
                 task.cancel()
 
-    def cancel(self: Executor, run_id: UUID | None = None) -> None:
+    def cancel(self: ExecutorProto, run_id: UUID | None = None) -> None:
         runs = [self._active_runs[run_id]] if run_id is not None and run_id in self._active_runs else list(self._active_runs.values())
         for run in runs:
             run.cancelled = True

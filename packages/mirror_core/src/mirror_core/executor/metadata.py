@@ -11,11 +11,11 @@ from mirror_core.planner import CompiledStep, ExecutionPlan
 from mirror_core.resource import ProducerRef, ResourceEnvelope
 
 if TYPE_CHECKING:
-    from mirror_core.executor.executor import Executor
+    from mirror_core.executor.protocol import ExecutorProto
 
 
 class MetadataMixin:
-    def _record_run_start(self, run: ExecutionRun, plan: ExecutionPlan) -> None:
+    def _record_run_start(self: ExecutorProto, run: ExecutionRun, plan: ExecutionPlan) -> None:
         self._record_metadata(
             MetadataRecord.execution_run(
                 run.run_id,
@@ -34,7 +34,7 @@ class MetadataMixin:
             )
         )
 
-    async def _record_run_finish(self: Executor, run: ExecutionRun, result: ExecutionResult) -> None:
+    async def _record_run_finish(self: ExecutorProto, run: ExecutionRun, result: ExecutionResult) -> None:
         self._record_metadata(
             MetadataRecord.terminal_outcome(
                 run.run_id,
@@ -55,7 +55,7 @@ class MetadataMixin:
             self._dead_letter_recorder.record(run, result)
 
     def _record_step_success(
-        self,
+        self: ExecutorProto,
         run: ExecutionRun,
         compiled: CompiledStep,
         step: Any,
@@ -66,7 +66,7 @@ class MetadataMixin:
         run.states[step.id] = StepState.SUCCEEDED
         self._record_step_success_metadata(run, step, envelope)
 
-    def _record_step_success_metadata(self, run: ExecutionRun, step: Any, envelope: ResourceEnvelope) -> None:
+    def _record_step_success_metadata(self: ExecutorProto, run: ExecutionRun, step: Any, envelope: ResourceEnvelope) -> None:
         producer = envelope.producer
         parents = [str(parent) for parent in envelope.parents]
         self._record_metadata(
@@ -85,7 +85,7 @@ class MetadataMixin:
         self._record_step_provenance(run, step, envelope.resource_id, producer)
 
     def _record_step_lineage(
-        self,
+        self: ExecutorProto,
         run: ExecutionRun,
         step: Any,
         resource_id: UUID,
@@ -103,7 +103,7 @@ class MetadataMixin:
         )
 
     def _record_step_provenance(
-        self,
+        self: ExecutorProto,
         run: ExecutionRun,
         step: Any,
         resource_id: UUID,
@@ -120,7 +120,7 @@ class MetadataMixin:
             )
         )
 
-    def _record_metadata(self: Executor, record: MetadataRecord) -> None:
+    def _record_metadata(self: ExecutorProto, record: MetadataRecord) -> None:
         if self.metadata_store is None:
             return
         self.metadata_store.put(record)
