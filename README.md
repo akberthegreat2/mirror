@@ -168,9 +168,11 @@ Start here:
 - `docs/adr/` — architectural decisions; these are not tutorials.
 - `docs/PRs/` — implementation phase notes; these are not user documentation.
 
-The next documentation phase expands every capability and Core package into
-PyPI-style educational reference pages. The README intentionally remains a
-short orientation and setup guide.
+Every capability and provider package now has a package-level README, and the repository contains capability/provider reference indexes. The README remains a short orientation and setup guide.
+
+### Django Admin with SQLite
+
+The dashboard is Django Admin itself; Mirror does not ship a competing custom dashboard view. A minimal standalone example lives in `examples/dashboard_sqlite/`. It uses SQLite and intentionally has no Fetch, HTTPX, Scrapy, Playwright, Celery, Redis, or PostgreSQL dependency. Run `python manage.py migrate`, create a superuser, then `python manage.py runserver` and open `/admin/`.
 
 ## Verification
 
@@ -189,7 +191,7 @@ from the repository root:
 pytest
 ```
 
-The standalone Core suite currently passes 119 tests. The full repository certification suite currently passes 296 tests with 5 external-service tests skipped when PostgreSQL/Redis are unavailable.
+The current candidate includes an independently runnable Core suite and targeted control-plane/manifest certification. Run the exact commands below in a dependency-complete environment before release tagging; this repository does not claim a green full-suite result merely because an earlier environment reported one.
 
 For PostgreSQL integration tests, provide a disposable real PostgreSQL DSN:
 

@@ -1,31 +1,34 @@
-# Mirror Celery Execution
+# mirror-execution-celery
 
-`mirror-execution-celery` is Mirror's Celery execution mechanism. Celery owns
-transport and process execution only. Mirror Core owns planning, retries,
-timeouts, cancellation, checkpoints, and terminal semantics.
+Celery execution transport for Mirror
 
-Redis is the Celery broker. PostgreSQL remains the durable worker backend.
+## Role
 
-## Start a worker
+**Core/interface/infrastructure package.**
 
-```bash
-export MIRROR_POSTGRES_DSN=postgresql://mirror:mirror@localhost:5432/mirror
-export MIRROR_CELERY_BROKER_URL=redis://localhost:6379/0
-mirror-celery-worker --execution-class default
-```
+This package is independently installable and publishes its own package metadata. It does not require modifying `mirror-core` to be discovered.
 
-Workers are generic. They consume execution IDs/jobs; they do not contain
-capability-specific crawler, scraper, search, or analyzer logic.
+## Dependencies
 
-## Automatic lease reclamation
+- `mirror-core>=0.1.0`
+- `mirror-worker-postgres>=0.1.0`
+- `celery>=5.6`
+- `redis>=6.2`
+- `tzlocal>=5.0`
 
-Run the Beat scheduler alongside the workers:
+## Entry points
 
-```bash
-mirror-celery-beat --loglevel INFO
-```
+- No plugin entry point declared.
 
-Beat schedules `mirror.requeue_expired` every 15 seconds by default. Set
-`MIRROR_REAPER_INTERVAL_SECONDS` to change the interval. The task only moves
-expired durable jobs back to `queued`; Mirror Core remains responsible for retry
-and execution policy.
+## Backend / implementation
+
+- `celery` is the declared upstream/industry backend dependency.
+- `redis` is the declared upstream/industry backend dependency.
+
+## Testing
+
+The package has a local `tests/` suite. Integration tests that require external infrastructure are explicitly marked where applicable.
+
+## Documentation
+
+See the corresponding package source and the repository `docs/` tree for the architectural and user-facing context.

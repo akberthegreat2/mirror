@@ -1,16 +1,31 @@
 # mirror-testing
 
-Contract-testing utilities for Mirror providers and capabilities.
+Contract‑testing utilities for Mirror providers
 
-This package is installed as a regular distribution package, so the README
-lives at the package root to satisfy build metadata and wheel generation.
+## Role
 
-## Usage
+**Core/interface/infrastructure package.**
 
-```python
-from mirror_testing import BaseContract
+This package is independently installable and publishes its own package metadata. It does not require modifying `mirror-core` to be discovered.
 
+## Dependencies
 
-class FetchContract(BaseContract):
-    provider_class = HTTPXProvider
-```
+- `mirror-core>=0.1.0`
+- `pytest>=8.0.0`
+- `pytest-asyncio>=0.23.0`
+
+## Entry points
+
+- No plugin entry point declared.
+
+## Backend / implementation
+
+This package defines a contract, orchestration surface, or framework/infrastructure role rather than claiming an external domain backend.
+
+## Testing
+
+The package has a local `tests/` suite. Integration tests that require external infrastructure are explicitly marked where applicable.
+
+## Documentation
+
+See the corresponding package source and the repository `docs/` tree for the architectural and user-facing context.

@@ -1,29 +1,21 @@
-# Mirror capability guide
+# Capability reference
 
-A capability is a stable domain contract. A provider is the concrete backend that
-implements it. Install only the capability and provider packages your
-application needs.
+Each capability is a domain contract. Providers implement the contract. A capability package does not claim an external backend merely by existing.
 
-| Capability | Contract package | Provider examples |
-|---|---|---|
-| Fetch | `mirror-fetch` | HTTPX, Playwright |
-| Crawl | `mirror-crawl` | Scrapy, local/reference |
-| Archive | `mirror-archive` | WARC |
-| Search | `mirror-search` | Memory |
-| Analyze | `mirror-analyze` | Basic |
-| Scrape | `mirror-scrape` | Basic |
-| Diff | `mirror-diff` | Text |
-| Monitor | `mirror-monitor` | Memory |
-| Normalize | `mirror-normalize` | Text |
-| Enrich | `mirror-enrich` | Text |
-| Chunk | `mirror-chunk` | Text |
-| Dedup | `mirror-dedup` | Hash |
-| Embedding | `mirror-embedding` | Hash |
-| Retrieval | `mirror-retrieval` | Memory |
-| Vector store | `mirror-vectorstore` | Memory |
-| Provenance | `mirror-provenance` | Resource |
-| Compliance | `mirror-compliance` | Rules |
-
-The provider column describes packages actually present in this repository.
-It is not a recommendation that an in-memory provider is suitable for a
-production deployment.
+- [mirror-analyze](../../packages/mirror-analyze/README.md) — Mirror analyze capability package
+- [mirror-archive](../../packages/mirror-archive/README.md) — Mirror Archive capability – persist resources durably
+- [mirror-chunk](../../packages/mirror-chunk/README.md) — Mirror chunking capability package
+- [mirror-compliance](../../packages/mirror-compliance/README.md) — Mirror compliance capability package
+- [mirror-crawl](../../packages/mirror-crawl/README.md) — Mirror Crawl capability
+- [mirror-dedup](../../packages/mirror-dedup/README.md) — Mirror dedup capability package
+- [mirror-diff](../../packages/mirror-diff/README.md) — Mirror diff capability package
+- [mirror-embedding](../../packages/mirror-embedding/README.md) — Mirror embedding capability package
+- [mirror-enrich](../../packages/mirror-enrich/README.md) — Mirror enrich capability package
+- [mirror-fetch](../../packages/mirror-fetch/README.md) — Mirror Fetch capability – retrieve web resources
+- [mirror-monitor](../../packages/mirror-monitor/README.md) — Mirror monitor capability package
+- [mirror-normalize](../../packages/mirror-normalize/README.md) — Mirror normalization capability package
+- [mirror-provenance](../../packages/mirror-provenance/README.md) — Mirror provenance capability package
+- [mirror-retrieval](../../packages/mirror-retrieval/README.md) — Mirror retrieval capability package
+- [mirror-scrape](../../packages/mirror-scrape/README.md) — Mirror scrape capability package
+- [mirror-search](../../packages/mirror-search/README.md) — Mirror search capability package
+- [mirror-vectorstore](../../packages/mirror-vectorstore/README.md) — Mirror vector storage capability package

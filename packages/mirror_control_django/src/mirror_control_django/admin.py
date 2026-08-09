@@ -162,3 +162,7 @@ class DeadLetterAdmin(admin.ModelAdmin):
     )
     list_filter = ("terminal_status",)
     search_fields = ("run_id", "pipeline_name", "step_id", "reason")
+
+
+# Public interface entry point used by the control-plane manifest.
+admin_site = admin.site

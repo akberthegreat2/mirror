@@ -1,3 +1,30 @@
-# Mirror Crawl
+# mirror-crawl
 
-Mirror Crawl is the first beta-facing crawling capability. It uses Mirror Fetch providers to walk pages, persist discovered URLs, and optionally store page content in blob storage.
+Mirror Crawl capability
+
+## Role
+
+**Capability contract.**
+
+This package is independently installable and publishes its own package metadata. It does not require modifying `mirror-core` to be discovered.
+
+## Dependencies
+
+- `mirror-core>=0.1.0`
+- `mirror-fetch>=0.1.0`
+
+## Entry points
+
+- `crawl` → `mirror_crawl:capability`
+
+## Backend / implementation
+
+This package defines a contract, orchestration surface, or framework/infrastructure role rather than claiming an external domain backend.
+
+## Testing
+
+The package has a local `tests/` suite. Integration tests that require external infrastructure are explicitly marked where applicable.
+
+## Documentation
+
+See the corresponding package source and the repository `docs/` tree for the architectural and user-facing context.

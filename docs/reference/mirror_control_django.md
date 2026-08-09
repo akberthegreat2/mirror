@@ -11,7 +11,7 @@ operators need to inspect and edit.
   schedules, crawled URLs, archives, checkpoints, and dead letters;
 - Django admin registrations for the control-plane models;
 - a blob-backed pipeline repository for code-defined and managed pipelines;
-- a lightweight dashboard page for operator summaries;
+- Django Admin registrations for the operator interface;
 - a settings-friendly app boundary that can be embedded in an existing Django
   project or mounted by a generated project scaffold.
 
@@ -39,8 +39,7 @@ user explicitly materializes them into managed pipelines.
 ## How to use it
 
 Install the package into a Django project and add `mirror_control_django` to
-`INSTALLED_APPS`. Then run migrations, register the URLs, and open Django admin
-or the dashboard view.
+`INSTALLED_APPS`. Then run migrations and open the host project's normal Django Admin URL. Mirror does not ship a competing custom dashboard view.
 
 The package is intentionally compatible with an existing Django project and does
 not require Mirror Core to import Django.

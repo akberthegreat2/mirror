@@ -160,10 +160,10 @@ interface = InterfaceManifest(
     requires_core=">=0.1.0",
     settings_model=None,
     interface_type="dashboard",
-    factory="mirror_control_django.views:DashboardView",
+    factory="mirror_control_django.admin:admin_site",
     requires_capabilities=[],
     metadata={
-        "description": "Django admin/control-plane interface for Mirror metadata and pipeline operations."
+        "description": "Django Admin control-plane interface for Mirror metadata, pipelines, executions, workers, schedules, checkpoints, and dead letters."
     },
 )
 

@@ -16,7 +16,7 @@ def _configure() -> None:
         SECRET_KEY="mirror-test-key",
         DEBUG=True,
         USE_TZ=True,
-        ROOT_URLCONF="mirror_control_django.urls",
+        ROOT_URLCONF="django.contrib.admin.sites",
         INSTALLED_APPS=[
             "django.contrib.auth",
             "django.contrib.contenttypes",

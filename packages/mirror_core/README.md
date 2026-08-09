@@ -1,63 +1,32 @@
 # mirror-core
 
-`mirror-core` is Mirror's framework kernel.
+Mirror core kernel – capability-agnostic chassis
 
-It is intentionally **capability-agnostic**. Core knows how to discover,
-validate, compile, schedule, execute, and observe work. It does not know how to
-crawl a website, call HTTPX, parse a WARC, search a database, or run an AI model.
-Those behaviors belong to capability/provider packages.
+## Role
 
-## Install
+**Core/interface/infrastructure package.**
 
-```bash
-pip install mirror-core
-```
+This package is independently installable and publishes its own package metadata. It does not require modifying `mirror-core` to be discovered.
 
-## Core flow
+## Dependencies
 
-```text
-Pipeline
-  ↓
-PipelineCompiler
-  ↓
-ExecutionPlan
-  ↓
-Executor
-  ↓
-Capability + Provider
-  ↓
-ResourceEnvelope
-```
+- `tomli>=2.0; python_version < '3.11'`
+- `pydantic>=2.0`
+- `pydantic-settings>=2.0`
+- `packaging>=23.0`
 
-For local work, use `InlineWorker` or `SQLiteWorkerBackend`. For distributed
-work, install `mirror-worker-postgres` and `mirror-execution-celery`.
+## Entry points
 
-## What Core owns
+- No plugin entry point declared.
 
-- extension discovery and validation;
-- settings and lifecycle;
-- pipeline planning and compilation;
-- execution state and runtime contexts;
-- retry, timeout, fallback, and cancellation semantics;
-- middleware and signals;
-- scheduling and worker contracts;
-- metadata, checkpoint, artifact, and dead-letter contracts.
+## Backend / implementation
 
-## What Core does not own
+This package defines a contract, orchestration surface, or framework/infrastructure role rather than claiming an external domain backend.
 
-Core does not import concrete providers. A provider package implements one
-capability contract and is discovered through the published extension API.
+## Testing
 
-The Core test suite is independently runnable with only Core dependencies.
-Repository-wide architecture and capability integration tests live under the
-repository-level `tests/` tree and are run from the monorepo root. Both are
-mandatory for release certification.
+The package has a local `tests/` suite. Integration tests that require external infrastructure are explicitly marked where applicable.
 
 ## Documentation
 
-Metadata enum values can be restored safely across process boundaries with
-`register_metadata_enum()` during trusted application initialization. Core never
-imports an arbitrary module named by persisted metadata.
-
-The educational Core guide is in `docs/concepts/core.md`. The constitutional
-rules are in `docs/ARCHITECTURE.md`.
+See the corresponding package source and the repository `docs/` tree for the architectural and user-facing context.

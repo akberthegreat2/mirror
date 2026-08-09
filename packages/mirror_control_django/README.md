@@ -1,20 +1,30 @@
 # mirror-control-django
 
-`mirror-control-django` is Mirror's reusable Django control-plane app. It keeps
-Mirror Core free of Django while giving operators a Django admin surface for
-projects, pipelines, versions, executions, workers, schedules, crawled URLs,
-archives, checkpoints, and dead letters.
+Mirror Django control-plane app and pipeline repository
 
-## What it provides
+## Role
 
-- a pure-Python control-plane manifest that describes the admin surface;
-- Django models for the control-plane objects;
-- Django admin registrations;
-- a blob-backed pipeline repository for managed pipeline definitions;
-- a lightweight dashboard view that summarizes the control plane.
+**Core/interface/infrastructure package.**
 
-## How it fits Mirror
+This package is independently installable and publishes its own package metadata. It does not require modifying `mirror-core` to be discovered.
 
-Mirror Core owns execution semantics. This package owns the human-facing
-control plane. Pipelines are stored as versioned blob documents; the database
-stores metadata and indexes.
+## Dependencies
+
+- `mirror-core>=0.1.0`
+- `django>=6.1`
+
+## Entry points
+
+- `dashboard` → `mirror_control_django.manifest:interface`
+
+## Backend / implementation
+
+- `django` is the declared upstream/industry backend dependency.
+
+## Testing
+
+The package has a local `tests/` suite. Integration tests that require external infrastructure are explicitly marked where applicable.
+
+## Documentation
+
+See the corresponding package source and the repository `docs/` tree for the architectural and user-facing context.
