@@ -281,48 +281,74 @@ class Planner:
                     raise PlannerError(
                         f"Step {step.id!r} binds undeclared input port {target!r}"
                     )
-                source_step, source_output = self._parse_binding(source, step.id)
-                if source_step == "$pipeline":
-                    if source_output not in pipeline.inputs:
-                        raise PlannerError(
-                            f"Step {step.id!r} references undeclared pipeline input "
-                            f"{source_output!r}"
+                for binding in self._iter_binding_sources(source):
+                    source_step = self._binding_source_step(binding, steps_by_id)
+                    if source_step is None:
+                        continue
+                    if source_step == "$pipeline":
+                        source_output = binding[len("$pipeline.") :]
+                        if source_output not in pipeline.inputs:
+                            raise PlannerError(
+                                f"Step {step.id!r} references undeclared pipeline input "
+                                f"{source_output!r}"
+                            )
+                        continue
+                    source_output = binding.split(".", 1)[1]
+                    source_capability = capabilities[source_step]
+                    source_ports = set(source_capability.output_ports)
+                    source_result_model = resolve_type(source_capability.result_model)
+                    if source_result_model is not None:
+                        source_ports.update(
+                            getattr(source_result_model, "model_fields", {}).keys()
                         )
-                    continue
-                if source_step not in steps_by_id:
-                    raise PlannerError(
-                        f"Step {step.id!r} references unknown step {source_step!r}"
+                        source_ports.add("result")
+                    if not source_ports:
+                        source_ports = set(steps_by_id[source_step].outputs)
+                    first_output = source_output.split(".", 1)[0]
+                    if first_output not in source_ports:
+                        raise PlannerError(
+                            f"Step {step.id!r} references unknown output "
+                            f"{source_output!r} from step {source_step!r}"
+                        )
+                    self._validate_port_compatibility(
+                        source_step,
+                        first_output,
+                        source_capability,
+                        step.id,
+                        target,
+                        capability,
                     )
-                source_capability = capabilities[source_step]
-                source_ports = set(source_capability.output_ports)
-                source_result_model = resolve_type(source_capability.result_model)
-                if source_result_model is not None:
-                    source_ports.update(
-                        getattr(source_result_model, "model_fields", {}).keys()
-                    )
-                if not source_ports:
-                    source_ports = set(steps_by_id[source_step].outputs)
-                if source_output not in source_ports:
-                    raise PlannerError(
-                        f"Step {step.id!r} references unknown output {source_output!r} "
-                        f"from step {source_step!r}"
-                    )
-                self._validate_port_compatibility(
-                    source_step,
-                    source_output,
-                    source_capability,
-                    step.id,
-                    target,
-                    capability,
-                )
 
     @staticmethod
-    def _parse_binding(source: str, step_id: str) -> tuple[str, str]:
-        if "." not in source:
-            raise PlannerError(
-                f"Step {step_id!r} has invalid binding {source!r}; expected '<step>.<output>'"
-            )
-        return tuple(source.split(".", 1))  # type: ignore[return-value]
+    def _iter_binding_sources(value: Any) -> Any:
+        """Yield every string leaf in a binding value, recursing into literals."""
+        if isinstance(value, str):
+            yield value
+        elif isinstance(value, dict):
+            for item in value.values():
+                yield from Planner._iter_binding_sources(item)
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                yield from Planner._iter_binding_sources(item)
+
+    @staticmethod
+    def _binding_source_step(source: Any, steps_by_id: dict[str, Any]) -> str | None:
+        """Return the referenced step for a binding, or None when it is a literal.
+
+        Only ``$pipeline.<key>`` references and ``<known-step>.<output>``
+        bindings are treated as references. Dotted strings whose leading
+        segment is not a plan step (for example model import paths) are
+        literals.
+        """
+        if not isinstance(source, str):
+            return None
+        if source.startswith("$pipeline."):
+            return "$pipeline"
+        if "." in source:
+            step, _ = source.split(".", 1)
+            if step in steps_by_id:
+                return step
+        return None
 
     @staticmethod
     def _validate_port_compatibility(
@@ -345,6 +371,10 @@ class Planner:
             target_type = field.annotation if field is not None else None
         if source_type is None or target_type is None or source_type == target_type:
             return
+        if source_type is Any or target_type is Any:
+            # An Any side (e.g. a transform step value) is compatible with any
+            # binding; the target model validates the value at runtime.
+            return
         if (
             isinstance(source_type, type)
             and isinstance(target_type, type)
@@ -361,15 +391,17 @@ class Planner:
     def _build_dependency_graph(
         self, pipeline: Pipeline
     ) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+        steps_by_id = {step.id: step for step in pipeline.steps}
         dependencies: dict[str, set[str]] = {step.id: set() for step in pipeline.steps}
         reverse: dict[str, set[str]] = {step.id: set() for step in pipeline.steps}
         for step in pipeline.steps:
             for source in step.input.values():
-                source_step, _ = self._parse_binding(source, step.id)
-                if source_step == "$pipeline":
-                    continue
-                dependencies[step.id].add(source_step)
-                reverse[source_step].add(step.id)
+                for binding in self._iter_binding_sources(source):
+                    source_step = self._binding_source_step(binding, steps_by_id)
+                    if source_step is None or source_step == "$pipeline":
+                        continue
+                    dependencies[step.id].add(source_step)
+                    reverse[source_step].add(step.id)
         return dependencies, reverse
 
     @staticmethod

@@ -143,9 +143,7 @@ class ComponentManager:
         init = factory.__init__
         if init is object.__init__:
             return False
-        if getattr(init, "__name__", None) == "_no_init_or_replace_init":
-            return False
-        return True
+        return getattr(init, "__name__", None) != "_no_init_or_replace_init"
 
     @staticmethod
     def _factory_parameters(factory: Any) -> dict[str, inspect.Parameter]:

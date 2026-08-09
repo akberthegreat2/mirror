@@ -9,14 +9,14 @@ from django.conf import settings
 
 
 def _configure() -> None:
+    base_dir = Path(__file__).resolve().parents[2]
     if settings.configured:
         return
-    base_dir = Path(__file__).resolve().parents[2]
     settings.configure(
         SECRET_KEY="mirror-test-key",
         DEBUG=True,
         USE_TZ=True,
-        ROOT_URLCONF="django.contrib.admin.sites",
+        ROOT_URLCONF="mirror_control_django.urls",
         INSTALLED_APPS=[
             "django.contrib.auth",
             "django.contrib.contenttypes",
@@ -43,7 +43,11 @@ def _configure() -> None:
                 "DIRS": [str(base_dir / "src")],
                 "APP_DIRS": True,
                 "OPTIONS": {
-                    "context_processors": ["django.template.context_processors.request"]
+                    "context_processors": [
+                        "django.template.context_processors.request",
+                        "django.contrib.auth.context_processors.auth",
+                        "django.contrib.messages.context_processors.messages",
+                    ]
                 },
             }
         ],
@@ -65,6 +69,16 @@ def _bootstrap() -> None:
 
 
 _bootstrap()
+
+
+@pytest.fixture(autouse=True)
+def _use_dashboard_urlconf() -> None:
+    """Route this package's tests through its own admin URLconf.
+
+    Other Django packages configure the shared process-global settings, so
+    the URLconf must be selected per-test rather than at import time.
+    """
+    settings.ROOT_URLCONF = "mirror_control_django.urls"
 
 
 @pytest.fixture(autouse=True)

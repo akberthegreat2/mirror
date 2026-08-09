@@ -520,6 +520,6 @@ __all__ = [
     "MetadataStore",
     "SQLiteMetadataStore",
     "decode_metadata_value",
-    "register_metadata_enum",
     "encode_metadata_value",
+    "register_metadata_enum",
 ]

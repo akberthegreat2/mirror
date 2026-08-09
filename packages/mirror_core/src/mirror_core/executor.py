@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import types
 from collections.abc import Awaitable, Callable, Mapping
 from enum import Enum
-from typing import Any, cast
+from typing import Any, Union, cast, get_args, get_origin
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -367,7 +368,7 @@ class Executor:
             try:
                 await task
             except asyncio.CancelledError:
-                if not run.cancelled:
+                if not run.cancelled and run.abort_error is None:
                     raise
         run.tasks = {sid: task for sid, task in run.tasks.items() if not task.done()}
 
@@ -961,29 +962,109 @@ class Executor:
 
     @staticmethod
     def _resolve_inputs(run: ExecutionRun, compiled: CompiledStep) -> dict[str, Any]:
+        request_model = compiled.capability.request_model
+        request_class = resolve_model(request_model) if request_model is not None else None
+        fields = request_class.model_fields if request_class is not None else {}
+
         values: dict[str, Any] = {}
         for target, source in compiled.definition.input.items():
-            source_step, output = source.split(".", 1)
-            if source_step == "$pipeline":
-                values[target] = run.inputs[output]
+            resolved = Executor._resolve_source(source, run, compiled.id)
+            field = fields.get(target)
+            annotation = field.annotation if field is not None else None
+            values[target] = Executor._coerce_value(resolved, annotation)
+        return values
+
+    @staticmethod
+    def _resolve_source(source: Any, run: ExecutionRun, step_id: str) -> Any:
+        """Resolve one input binding, including list/dict literals and refs."""
+        if isinstance(source, list):
+            return [Executor._resolve_source(item, run, step_id) for item in source]
+        if isinstance(source, dict):
+            return {
+                key: Executor._resolve_source(value, run, step_id)
+                for key, value in source.items()
+            }
+        if isinstance(source, str):
+            if source.startswith("$pipeline."):
+                key = source[len("$pipeline.") :]
+                try:
+                    return run.inputs[key]
+                except KeyError:
+                    raise ExecutionError(
+                        f"Pipeline has no input {key!r} for step {step_id!r}"
+                    ) from None
+            if "." in source:
+                source_step, output = source.split(".", 1)
+                if source_step not in run.plan.steps:
+                    # Not a plan step: treat dotted strings (e.g. import paths)
+                    # as literal values rather than step references.
+                    return source
+                envelope = run.results.get(source_step)
+                if envelope is None:
+                    raise ExecutionError(
+                        f"Missing dependency resource {source_step!r} for step {step_id!r}"
+                    )
+                return Executor._walk_result(envelope.payload, output, source_step, step_id)
+            return source
+        return source
+
+    @staticmethod
+    def _walk_result(
+        payload: Any, output_path: str, source_step: str, step_id: str
+    ) -> Any:
+        """Resolve an attribute/key path like ``result.chunks`` on a payload.
+
+        The leading ``result`` segment maps to the whole payload, matching the
+        step's ``outputs`` convention; subsequent segments are attributes or
+        mapping keys.
+        """
+        current = payload
+        for index, segment in enumerate(output_path.split(".")):
+            if index == 0 and segment == "result":
                 continue
-            envelope = run.results.get(source_step)
-            if envelope is None:
-                raise ExecutionError(
-                    f"Missing dependency resource {source_step!r} for step {compiled.id!r}"
-                )
-            payload = envelope.payload
-            if output == "result":
-                values[target] = payload
-            elif hasattr(payload, output):
-                values[target] = getattr(payload, output)
-            elif isinstance(payload, Mapping) and output in payload:
-                values[target] = payload[output]
+            if hasattr(current, segment):
+                current = getattr(current, segment)
+            elif isinstance(current, Mapping) and segment in current:
+                current = current[segment]
             else:
                 raise ExecutionError(
-                    f"Resource from step {source_step!r} has no output {output!r}"
+                    f"Resource from step {source_step!r} has no output "
+                    f"{output_path!r} (missing {segment!r}) for step {step_id!r}"
                 )
-        return values
+        return current
+
+    @staticmethod
+    def _coerce_value(value: Any, annotation: Any) -> Any:
+        """Coerce a resolved value toward the target field's annotation."""
+        if annotation is None:
+            return value
+        origin = get_origin(annotation)
+        if origin in (list, tuple):
+            args = get_args(annotation)
+            item_annotation = args[0] if args else None
+            items = value if isinstance(value, (list, tuple)) else [value]
+            return [Executor._coerce_value(item, item_annotation) for item in items]
+        if isinstance(value, bytes) and Executor._is_text_annotation(annotation):
+            return Executor._decode_bytes(value)
+        return value
+
+    @staticmethod
+    def _is_text_annotation(annotation: Any) -> bool:
+        if annotation is str:
+            return True
+        origin = get_origin(annotation)
+        if origin is None:
+            return False
+        if origin in (Union, types.UnionType):
+            return str in get_args(annotation)
+        return False
+
+    @staticmethod
+    def _decode_bytes(raw: bytes) -> str:
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError:
+            return raw.decode("utf-8", errors="replace")
 
     @staticmethod
     def _can_run(run: ExecutionRun, step_id: str) -> bool:

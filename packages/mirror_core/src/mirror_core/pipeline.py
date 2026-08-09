@@ -68,7 +68,7 @@ class Step(BaseModel):
     id: str = Field(min_length=1)
     capability: str = Field(min_length=1)
     provider: str | None = None
-    input: dict[str, str] = Field(default_factory=dict)
+    input: dict[str, Any] = Field(default_factory=dict)
     outputs: list[str] = Field(default_factory=list)
     condition: str | None = None
     retry: RetryPolicy | None = None

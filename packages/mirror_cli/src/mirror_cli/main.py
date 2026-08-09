@@ -67,7 +67,11 @@ def manifest_capability(name: str = typer.Argument(..., help="Capability name.")
     """Show one discovered capability manifest."""
     for manifest in InterfaceCatalog().discover().capabilities:
         if manifest.name == name or manifest.extension_id == name:
-            console.print_json(manifest.model_dump_json(indent=2))
+            console.print_json(
+                json.dumps(
+                    InterfaceCatalog.manifest_document(manifest), sort_keys=True
+                )
+            )
             return
     raise typer.BadParameter(f"Unknown capability: {name}")
 
@@ -80,7 +84,11 @@ def manifest_provider(
     """Show one discovered provider manifest."""
     for manifest in InterfaceCatalog().discover().providers:
         if manifest.capability == capability and (manifest.name == name or manifest.extension_id == name):
-            console.print_json(manifest.model_dump_json(indent=2))
+            console.print_json(
+                json.dumps(
+                    InterfaceCatalog.manifest_document(manifest), sort_keys=True
+                )
+            )
             return
     raise typer.BadParameter(f"Unknown provider: {capability}/{name}")
 

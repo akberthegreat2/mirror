@@ -164,5 +164,10 @@ class DeadLetterAdmin(admin.ModelAdmin):
     search_fields = ("run_id", "pipeline_name", "step_id", "reason")
 
 
+# The dashboard surface is Django Admin branded as the Mirror control plane.
+admin.site.site_header = "Mirror Control Plane"
+admin.site.site_title = "Mirror Control Plane"
+admin.site.index_title = "Mirror Control Plane"
+
 # Public interface entry point used by the control-plane manifest.
 admin_site = admin.site
