@@ -1,15 +1,24 @@
 # ADR-0034: Capability Expansion and Vertical Ecosystem Model
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-07
-- **Scope:** Optional capability families, provider packages, and ecosystem expansion beyond web infrastructure
-- **Related ADRs:** ADR-0001 Package Boundaries, ADR-0024 Capability Package Boundaries, ADR-0026 Knowledge Infrastructure Capability Model, ADR-0037 Enterprise Execution Pipeline & Runtime Semantics
+- **Scope:** Optional capability families, provider packages, and ecosystem
+  expansion beyond web infrastructure
+- **Related ADRs:** ADR-0001 Package Boundaries, ADR-0024 Capability Package
+  Boundaries, ADR-0026 Knowledge Infrastructure Capability Model, ADR-0037
+  Enterprise Execution Pipeline & Runtime Semantics, ADR-0046 Provider
+  Saturation and Industry-Grade Backend Policy
+- **Ratified:** Accepted via ADR-0046.
 
 ## Context
 
-Mirror has already proven that the capability/provider model can support web infrastructure and the first knowledge-infrastructure slice. The next architectural question is not whether Mirror should grow; it is how growth should happen without turning the core into a domain-specific framework.
+Mirror has already proven that the capability/provider model can support web
+infrastructure and the first knowledge-infrastructure slice. The next
+architectural question is not whether Mirror should grow; it is how growth
+should happen without turning the core into a domain-specific framework.
 
-The repository discussions have identified a broad set of future capability families outside the current web-focused surface, including:
+The repository discussions have identified a broad set of future capability
+families outside the current web-focused surface, including:
 
 - OCR and document parsing;
 - PDF and table extraction;
@@ -27,11 +36,14 @@ The repository discussions have identified a broad set of future capability fami
 - webhooks and notification gateways;
 - privacy and compliance filters.
 
-These ideas are useful, but they must remain optional. They should not become hard dependencies of the kernel.
+These ideas are useful, but they must remain optional. They should not become
+hard dependencies of the kernel.
 
 ## Decision
 
-Mirror will treat new domain families as first-class capabilities, but only through the same contract/provider split already used by Fetch, Archive, and the knowledge-infrastructure slice.
+Mirror will treat new domain families as first-class capabilities, but only
+through the same contract/provider split already used by Fetch, Archive, and the
+knowledge-infrastructure slice.
 
 ### 1. Capability packages define the domain contract
 
@@ -39,23 +51,19 @@ Each new family may introduce a capability package that owns:
 
 - request/result models,
 - the public protocol,
-- capability metadata,
-- dependency declarations,
-- settings schema,
-- error semantics,
-- test contract descriptions.
+- capability manifest,
+- runner,
+- settings contract,
+- capability-specific errors.
 
 ### 2. Provider packages implement the contract
 
-Concrete implementations live in provider packages or plugin distributions.
+Each concrete backend lives in its own provider package that implements the
+capability protocol and registers a provider manifest.
 
-Examples include browser engines, OCR engines, vector backends, public APIs, geocoders, proxy pools, and observability exporters.
+### 3. Core stays unchanged
 
-### 3. Core stays generic
-
-`mirror_core` does not gain vendor dependencies for any of these families.
-
-Core remains responsible only for:
+New families must not add to Core's responsibilities:
 
 - planning,
 - execution,
@@ -73,9 +81,11 @@ Core remains responsible only for:
 
 Not every Mirror installation should have every domain family installed.
 
-A user may install only web infrastructure, only knowledge infrastructure, or a narrow vertical bundle.
+A user may install only web infrastructure, only knowledge infrastructure, or a
+narrow vertical bundle.
 
-This keeps the framework usable for small projects while still enabling richer ecosystems.
+This keeps the framework usable for small projects while still enabling richer
+ecosystems.
 
 ## Non-goals
 
@@ -109,4 +119,5 @@ This ADR is considered implemented when:
 - new families can be introduced without changing Core,
 - provider discovery works for third-party packages,
 - each new family follows the same contract/provider discipline,
-- integration tests prove that optional vertical bundles do not alter the kernel.
+- integration tests prove that optional vertical bundles do not alter the
+  kernel.
