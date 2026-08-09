@@ -94,3 +94,10 @@ legal test site). Mocked-provider tests prove architecture, not the backend
   finding P1.5).
 - No capability is certified as production until a production-grade provider is
   verified against its real backend.
+
+## Provider saturation matrix
+
+The authoritative, per-capability list of industry-grade providers (wrapped tools
+and implementation status) lives in
+`docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`. It is the implementation and
+testing checklist for the beta release gate.

@@ -87,7 +87,8 @@ in follow-up passes after review.
 - [x] ADR-0045 control-plane operations and security contract
       (`PR_BETA_CONTROL_OPS_AND_SECURITY.md`)
 - [x] ADR-0046 provider saturation and industry-grade backend policy
-      (`PR_BETA_PROVIDER_SATURATION.md`)
+      (`PR_BETA_PROVIDER_SATURATION.md`); the per-capability provider list is
+      `docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`
 - [x] ADR-0047 knowledge/RAG ecosystem saturation (`PR_BETA_RAG_ECOSYSTEM.md`)
 - [x] ADR-0048 distributed recovery and worker result semantics
       (`PR_BETA_DISTRIBUTED_RECOVERY.md`)
