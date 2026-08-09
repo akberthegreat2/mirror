@@ -46,13 +46,11 @@ def submit_main() -> None:
 
     parser = argparse.ArgumentParser(description="Submit a Mirror pipeline to Celery")
     parser.add_argument("pipeline", help="JSON file containing a Mirror pipeline")
-    parser.add_argument(
-        "--inputs", default="{}", help="JSON object containing pipeline inputs"
-    )
+    parser.add_argument("--inputs", default="{}", help="JSON object containing pipeline inputs")
     parser.add_argument("--execution-class", default="default")
     args = parser.parse_args()
 
-    from mirror_core.application import Application
+    from mirror_core.application import Application, bake_provider_selections
     from mirror_core.pipeline import Pipeline
     from mirror_core.workers import WorkerJob
     from mirror_worker_postgres import PostgresWorkerBackend
@@ -73,10 +71,12 @@ def submit_main() -> None:
         try:
             pipeline_model = Pipeline.model_validate(pipeline_data)
             plan = mirror_app.compile_pipeline(pipeline_model)
-            provider_selections = {
-                step_id: compiled.provider.name
-                for step_id, compiled in plan.steps.items()
-            }
+            provider_selections = {step_id: compiled.provider.name for step_id, compiled in plan.steps.items()}
+            # The worker rebakes selections into the pipeline before compiling,
+            # so the fingerprint must be computed over the same baked pipeline
+            # or the two compilations can never match.
+            baked = bake_provider_selections(pipeline_model, provider_selections)
+            baked_plan = mirror_app.compile_pipeline(baked)
         finally:
             await mirror_app.shutdown()
         await backend.start()
@@ -89,7 +89,7 @@ def submit_main() -> None:
                     "pipeline": pipeline_data,
                     "inputs": inputs,
                     "provider_selections": provider_selections,
-                    "config_fingerprint": plan.config_fingerprint,
+                    "config_fingerprint": baked_plan.config_fingerprint,
                 },
             )
             stored = await transport.submit(job)
