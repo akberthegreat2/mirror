@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from django.contrib import admin
+try:
+    from django.contrib import admin
+except ModuleNotFoundError as exc:
+    raise ModuleNotFoundError(
+        "The Django control-plane interface requires Django. "
+        "Install it with: pip install 'mirror-control-django[django]'"
+    ) from exc
 
 from mirror_control_django import models
 from mirror_control_django.forms import PipelineVersionForm
