@@ -59,8 +59,10 @@ privacy_guard  -> presidio, spaCy
 ```
 
 A provider that is deterministic and in-memory (for tests, examples, or
-framework verification) is allowed only when it is explicitly labeled
-"reference" in its manifest metadata and never presented as production.
+framework verification) is allowed only as a test-only double inside the test
+suite or `mirror_testing` — it is never shipped as a capability/provider package
+in the registry. The first-party reference providers shipped before this ADR are
+retired by ADR-0051 and replaced with industry-grade providers.
 
 ### 3. Saturation rule for beta
 
@@ -72,9 +74,8 @@ kept out of the certified list. The flagship set is:
 fetch, crawl, embedding, vectorstore, retrieval, search
 ```
 
-Reference providers count toward the three only for the purpose of local
-development; the certified-beta claim requires at least one production-grade
-provider per flagship capability.
+The three-provider target is met by industry-grade providers. Retired
+reference providers do not count toward the three (ADR-0051).
 
 ### 4. Testing rule
 

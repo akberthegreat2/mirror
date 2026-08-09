@@ -32,6 +32,8 @@ saturates the provider ecosystem and hardens the remaining review findings.
 - `PR_BETA_PROVIDER_SATURATION.md` — provider saturation and industry-grade
   backend policy (ADR-0046)
 - `PR_BETA_RAG_ECOSYSTEM.md` — knowledge/RAG ecosystem saturation (ADR-0047)
+- `PR_BETA_REFERENCE_RETIREMENT.md` — reference provider retirement and
+  industry-grade replacement (ADR-0051)
 - `PR_BETA_DISTRIBUTED_RECOVERY.md` — distributed recovery and worker result
   semantics (ADR-0048)
 - `PR_BETA_RELEASE_GATE.md` — beta release gate and remaining hardening

@@ -94,6 +94,8 @@ in follow-up passes after review.
       (`PR_BETA_DISTRIBUTED_RECOVERY.md`)
 - [x] ADR-0049 beta production-readiness gate
 - [x] ADR-0050 remaining review hardening
+- [x] ADR-0051 reference provider retirement and industry-grade replacement
+      (`PR_BETA_REFERENCE_RETIREMENT.md`)
 - [ ] Implement the `mirror_database` contract family and SQLite/Postgres
       backends
 - [ ] Implement the `mirror_control` service and the CLI/admin/DRF adapters

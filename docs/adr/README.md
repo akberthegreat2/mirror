@@ -50,6 +50,7 @@ contracts.
 - ADR-0048 distributed recovery and worker result semantics
 - ADR-0049 beta production-readiness gate
 - ADR-0050 remaining review hardening
+- ADR-0051 reference provider retirement and industry-grade replacement
 
 ## Future drafts
 
