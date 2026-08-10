@@ -12,6 +12,7 @@ authors = [{name = "Mirror Contributors"}]
 requires-python = ">=3.10"
 dependencies = [
     "mirror-core>=0.1.0",
+    "mirror-control>=0.1.0",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
