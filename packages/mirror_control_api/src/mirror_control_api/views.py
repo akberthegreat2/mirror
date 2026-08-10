@@ -45,9 +45,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 class PipelineViewSet(viewsets.ModelViewSet):
-    queryset = models.Pipeline.objects.select_related("project").prefetch_related(
-        "versions"
-    )
+    queryset = models.Pipeline.objects.all()
     serializer_class = PipelineSerializer
 
     @action(detail=True, methods=["post"])
@@ -57,19 +55,20 @@ class PipelineViewSet(viewsets.ModelViewSet):
         if not definition_text:
             return Response({"detail": "definition_text is required"}, status=400)
         if pipeline.is_read_only:
-            return Response(
-                {"detail": "Code-defined pipelines are read-only"}, status=400
-            )
+            return Response({"detail": "Code-defined pipelines are read-only"}, status=400)
         from mirror_control_django.repository import ControlPlaneRepository
 
+        project = models.Project.objects.get(pk=pipeline.project_id)
         repo = ControlPlaneRepository()
         managed, _version = repo.materialize_definition(
-            project_slug=pipeline.project.slug,
+            project_slug=project.slug,
             pipeline_slug=pipeline.slug,
             definition=str(definition_text).encode("utf-8"),
             metadata=request.data.get("metadata") or {},
             notes=str(request.data.get("notes", "")),
         )
+        # Re-read the managed pipeline as a Django model instance for DRF.
+        managed = models.Pipeline.objects.get(pk=str(managed.id))
         return Response(
             PipelineSerializer(managed, context=self.get_serializer_context()).data,
             status=201,
@@ -77,16 +76,12 @@ class PipelineViewSet(viewsets.ModelViewSet):
 
 
 class PipelineVersionViewSet(viewsets.ModelViewSet):
-    queryset = models.PipelineVersion.objects.select_related(
-        "pipeline", "pipeline__project"
-    )
+    queryset = models.PipelineVersion.objects.all()
     serializer_class = PipelineVersionSerializer
 
     def update(self, request, *args, **kwargs):
         return Response(
-            {
-                "detail": "Pipeline versions are immutable; create a new version instead."
-            },
+            {"detail": "Pipeline versions are immutable; create a new version instead."},
             status=405,
         )
 
@@ -97,14 +92,12 @@ class PipelineVersionViewSet(viewsets.ModelViewSet):
 
 
 class ExecutionRunViewSet(viewsets.ModelViewSet):
-    queryset = models.ExecutionRun.objects.select_related(
-        "pipeline", "pipeline__project"
-    )
+    queryset = models.ExecutionRun.objects.all()
     serializer_class = ExecutionRunSerializer
 
 
 class ExecutionStepViewSet(viewsets.ModelViewSet):
-    queryset = models.ExecutionStep.objects.select_related("run", "run__pipeline")
+    queryset = models.ExecutionStep.objects.all()
     serializer_class = ExecutionStepSerializer
 
 
@@ -114,17 +107,17 @@ class WorkerViewSet(viewsets.ModelViewSet):
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):
-    queryset = models.Schedule.objects.select_related("pipeline", "pipeline__project")
+    queryset = models.Schedule.objects.all()
     serializer_class = ScheduleSerializer
 
 
 class CrawledURLViewSet(viewsets.ModelViewSet):
-    queryset = models.CrawledURL.objects.select_related("project", "pipeline")
+    queryset = models.CrawledURL.objects.all()
     serializer_class = CrawledURLSerializer
 
 
 class ArchiveRecordViewSet(viewsets.ModelViewSet):
-    queryset = models.ArchiveRecord.objects.select_related("pipeline")
+    queryset = models.ArchiveRecord.objects.all()
     serializer_class = ArchiveRecordSerializer
 
 
@@ -134,5 +127,5 @@ class CheckpointViewSet(viewsets.ModelViewSet):
 
 
 class DeadLetterViewSet(viewsets.ModelViewSet):
-    queryset = models.DeadLetter.objects.select_related("pipeline")
+    queryset = models.DeadLetter.objects.all()
     serializer_class = DeadLetterSerializer

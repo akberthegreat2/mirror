@@ -7,13 +7,13 @@ Admin-specific :class:`InterfaceManifest` entry point.
 
 from __future__ import annotations
 
-from mirror_core.extensions.models import InterfaceManifest
 from mirror_control.manifest import (
     CONTROL_PLANE_MANIFEST,
     ControlPlaneEntitySpec,
     ControlPlaneManifest,
     control_plane_manifest,
 )
+from mirror_core.extensions.models import InterfaceManifest
 
 __all__ = [
     "CONTROL_PLANE_MANIFEST",

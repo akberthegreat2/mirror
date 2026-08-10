@@ -158,9 +158,7 @@ class ControlService:
             raise NotFoundError(f"{entity_type} {entity_id} not found")
         return entity
 
-    async def update_entity(
-        self, name: str, entity_id: UUID, data: Mapping[str, Any]
-    ) -> BaseEntity:
+    async def update_entity(self, name: str, entity_id: UUID, data: Mapping[str, Any]) -> BaseEntity:
         """Update an existing entity with the given field values."""
 
         entity_type = _entity_type(name)
@@ -200,9 +198,7 @@ class ControlService:
             order_desc=order_desc,
         )
 
-    async def count_entities(
-        self, name: str, filters: Mapping[str, Any] | None = None
-    ) -> int:
+    async def count_entities(self, name: str, filters: Mapping[str, Any] | None = None) -> int:
         """Count entities of a type matching optional filters."""
 
         entity_type = _entity_type(name)
@@ -219,24 +215,16 @@ class ControlService:
             raise NotFoundError(f"project {slug!r} not found")
         return project
 
-    async def get_pipeline_by_slug(
-        self, project_id: UUID, slug: str
-    ) -> Pipeline | None:
+    async def get_pipeline_by_slug(self, project_id: UUID, slug: str) -> Pipeline | None:
         return await self.backend.get_pipeline_by_slug(project_id, slug)
 
-    async def get_latest_pipeline_version(
-        self, pipeline_id: UUID
-    ) -> PipelineVersion | None:
+    async def get_latest_pipeline_version(self, pipeline_id: UUID) -> PipelineVersion | None:
         return await self.backend.get_latest_pipeline_version(pipeline_id)
 
-    async def get_pipeline_version(
-        self, pipeline_id: UUID, version: int
-    ) -> PipelineVersion | None:
+    async def get_pipeline_version(self, pipeline_id: UUID, version: int) -> PipelineVersion | None:
         return await self.backend.get_pipeline_version(pipeline_id, version)
 
-    async def list_pipeline_versions(
-        self, pipeline_id: UUID
-    ) -> Sequence[PipelineVersion]:
+    async def list_pipeline_versions(self, pipeline_id: UUID) -> Sequence[PipelineVersion]:
         return await self.backend.list_pipeline_versions(pipeline_id)
 
     async def get_execution_run(self, run_id: UUID) -> ExecutionRun | None:
@@ -249,9 +237,7 @@ class ControlService:
         limit: int = 100,
         offset: int = 0,
     ) -> Sequence[ExecutionRun]:
-        return await self.backend.list_execution_runs(
-            pipeline_id, status=status, limit=limit, offset=offset
-        )
+        return await self.backend.list_execution_runs(pipeline_id, status=status, limit=limit, offset=offset)
 
     async def get_execution_steps(self, run_id: UUID) -> Sequence[ExecutionStep]:
         return await self.backend.get_execution_steps(run_id)
@@ -275,9 +261,7 @@ class ControlService:
         status: str | None = None,
         enabled: bool | None = None,
     ) -> Sequence[Schedule]:
-        return await self.backend.list_schedules(
-            pipeline_id, status=status, enabled=enabled
-        )
+        return await self.backend.list_schedules(pipeline_id, status=status, enabled=enabled)
 
     async def get_crawled_urls(
         self,
@@ -302,13 +286,9 @@ class ControlService:
         limit: int = 100,
         offset: int = 0,
     ) -> Sequence[ArchiveRecord]:
-        return await self.backend.get_archive_records(
-            pipeline_id, run_id=run_id, limit=limit, offset=offset
-        )
+        return await self.backend.get_archive_records(pipeline_id, run_id=run_id, limit=limit, offset=offset)
 
-    async def get_checkpoints(
-        self, run_id: UUID, step_id: str | None = None
-    ) -> Sequence[Checkpoint]:
+    async def get_checkpoints(self, run_id: UUID, step_id: str | None = None) -> Sequence[Checkpoint]:
         return await self.backend.get_checkpoints(run_id, step_id=step_id)
 
     async def get_dead_letters(
@@ -318,9 +298,7 @@ class ControlService:
         limit: int = 100,
         offset: int = 0,
     ) -> Sequence[DeadLetter]:
-        return await self.backend.get_dead_letters(
-            pipeline_id, run_id=run_id, limit=limit, offset=offset
-        )
+        return await self.backend.get_dead_letters(pipeline_id, run_id=run_id, limit=limit, offset=offset)
 
     # ------------------------------------------------- operational actions
 
@@ -332,9 +310,7 @@ class ControlService:
         execution_class: str,
         run_id: UUID,
     ) -> ExecutionRun:
-        return await self.backend.submit_run(
-            pipeline_id, pipeline_version, inputs, execution_class, run_id
-        )
+        return await self.backend.submit_run(pipeline_id, pipeline_version, inputs, execution_class, run_id)
 
     async def cancel_run(self, run_id: UUID, reason: str) -> ExecutionRun:
         return await self.backend.cancel_run(run_id, reason)
@@ -351,9 +327,7 @@ class ControlService:
     async def disable_worker(self, worker_id: UUID) -> Worker:
         return await self.backend.disable_worker(worker_id)
 
-    async def replay_dead_letter(
-        self, dead_letter_id: UUID, keep_original: bool = True
-    ) -> ExecutionRun:
+    async def replay_dead_letter(self, dead_letter_id: UUID, keep_original: bool = True) -> ExecutionRun:
         return await self.backend.replay_dead_letter(dead_letter_id, keep_original)
 
     async def discard_dead_letter(self, dead_letter_id: UUID) -> bool:
@@ -426,9 +400,7 @@ class ControlService:
     async def pipeline_document(self, pipeline: Pipeline) -> dict[str, Any]:
         """Return a JSON-serialisable document for dashboards and APIs."""
 
-        current = await self.backend.get_pipeline_version(
-            pipeline.id, pipeline.current_version_number
-        )
+        current = await self.backend.get_pipeline_version(pipeline.id, pipeline.current_version_number)
         if current is None:
             latest = await self.backend.get_latest_pipeline_version(pipeline.id)
         else:

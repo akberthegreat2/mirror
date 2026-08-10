@@ -9,9 +9,7 @@ from django.test import Client
 def test_django_admin_index_is_the_dashboard() -> None:
     """The shipped dashboard surface is Django Admin, not a custom view."""
     User = get_user_model()
-    User.objects.create_superuser(
-        username="admin", email="admin@example.test", password="test-password"
-    )
+    User.objects.create_superuser(username="admin", email="admin@example.test", password="test-password")
     client = Client()
     assert client.login(username="admin", password="test-password")
     response = client.get("/admin/")

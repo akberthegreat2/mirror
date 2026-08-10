@@ -103,9 +103,7 @@ async def test_create_get_update_delete_roundtrip(service: ControlService) -> No
     assert isinstance(fetched, Project)
     assert fetched.slug == "demo"
 
-    updated = await service.update_entity(
-        "project", project.id, {"name": "Renamed Project"}
-    )
+    updated = await service.update_entity("project", project.id, {"name": "Renamed Project"})
     assert isinstance(updated, Project)
     assert updated.name == "Renamed Project"
 

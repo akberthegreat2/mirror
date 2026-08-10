@@ -23,6 +23,8 @@ class PipelineOrigin(str, enum.Enum):
     LOCAL = "local"
     IMPORTED = "imported"
     TEMPLATE = "template"
+    CODE = "code"
+    MANAGED = "managed"
 
 
 class DefinitionFormat(str, enum.Enum):
