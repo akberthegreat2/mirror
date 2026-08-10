@@ -39,7 +39,7 @@ replaced. They are no longer shipped as provider-of-record packages.
 |---|---|---|
 | `mirror_fetch_httpx` | httpx (async HTTP client) | ✅ |
 | `mirror_fetch_playwright` | Playwright (real browser) | ✅ |
-| `mirror_fetch_curl_cffi` | curl_cffi / curl-impersonate (TLS-fingerprint HTTP) | 🟦 |
+| `mirror_fetch_curl_cffi` | curl_cffi / curl-impersonate (TLS-fingerprint HTTP) | ✅ |
 
 ### crawl ★
 | Provider package | Wrapped tool | Status |
@@ -226,7 +226,7 @@ counted (ADR-0051).
 
 | Capability | Industry-grade today | Target (≥3) |
 |---|---|---|
-| fetch ★ | 2 (httpx, playwright) | 3 |
+| fetch ★ | **3** (httpx, playwright, curl_cffi) — **saturated** | 3 |
 | crawl ★ | 2 (local httpx-composed, scrapy) | 3 |
 | archive | 1 (warc) | 3 |
 | scrape | 0 | 4 |

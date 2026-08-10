@@ -111,6 +111,7 @@ def test_first_party_providers_conform_to_protocols() -> None:
     from mirror_diff.protocol import Diff
     from mirror_diff_text.provider import TextDiffProvider
     from mirror_fetch.protocol import Fetch
+    from mirror_fetch_curl_cffi.provider import CurlCFFIProvider
     from mirror_fetch_httpx.provider import HTTPXProvider
     from mirror_fetch_playwright.provider import PlaywrightProvider
     from mirror_monitor.protocol import Monitor
@@ -126,6 +127,7 @@ def test_first_party_providers_conform_to_protocols() -> None:
 
     assert isinstance(HTTPXProvider(), Fetch)
     assert isinstance(PlaywrightProvider(), Fetch)
+    assert isinstance(CurlCFFIProvider(), Fetch)
     assert isinstance(WARCProvider(), Archive)
     assert isinstance(SearchMemoryProvider(), Search)
     assert isinstance(BasicAnalyzeProvider(), Analyze)

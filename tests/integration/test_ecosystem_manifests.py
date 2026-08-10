@@ -74,6 +74,22 @@ def test_every_shipped_provider_publishes_a_manifest() -> None:
         )
 
 
+def test_all_flagship_capabilities_are_reported_by_saturation() -> None:
+    """The live registry must report every flagship capability (ADR-0046 §3)."""
+    from mirror_core.extensions import FLAGSHIP_CAPABILITIES, provider_saturation
+
+    report = provider_saturation()
+    present = {entry.capability for entry in report.by_capability}
+    assert set(FLAGSHIP_CAPABILITIES) <= present, (
+        f"Flagship capabilities missing from saturation report: "
+        f"{set(FLAGSHIP_CAPABILITIES) - present}"
+    )
+    # fetch has three industry-grade providers (httpx, playwright, curl_cffi).
+    fetch = report.for_capability("fetch")
+    assert fetch is not None
+    assert fetch.saturated is True
+
+
 def test_all_control_plane_interfaces_publish_manifests() -> None:
     entries = _entry_points("mirror.interfaces")
     names = {name for name, _, _ in entries}
