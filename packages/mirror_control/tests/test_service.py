@@ -7,12 +7,17 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from mirror_control.errors import NotFoundError, UnknownEntityError
+from mirror_control.certify import certify_control_plane
+from mirror_control.errors import CertificationError, NotFoundError, UnknownEntityError
 from mirror_control.manifest import CONTROL_PLANE_MANIFEST
 from mirror_control.service import ControlService
+from mirror_core.metadata.models import MetadataNamespaces
+from mirror_core.metadata.store import InMemoryMetadataStore
 from mirror_core.pipeline import Pipeline as CorePipeline
 from mirror_core.pipeline import Step
 from mirror_core.storage import FileSystemBlobStore
+from mirror_core.workers.models import JobState
+from mirror_core.workers.sqlite_backend import SQLiteWorkerBackend
 from mirror_database.models import (
     Project,
     ScheduleStatus,
@@ -233,3 +238,151 @@ async def test_materialize_missing_project_raises(service: ControlService) -> No
             pipeline_slug="ingest",
             pipeline=_core_pipeline(),
         )
+
+
+# --------------------------------------------------- worker job submission
+
+
+async def test_run_submits_worker_job(tmp_path: Path) -> None:
+    backend = SQLiteBackend("sqlite:///:memory:")
+    await backend.initialize()
+    worker_backend = SQLiteWorkerBackend(tmp_path / "jobs.db")
+    await worker_backend.start()
+    svc = ControlService(backend, FileSystemBlobStore(tmp_path / "blobs"), worker_backend=worker_backend)
+    try:
+        project = await _make_project(svc)
+        managed, _version = await svc.materialize_pipeline(
+            project_slug=project.slug,
+            pipeline_slug="ingest",
+            pipeline=_core_pipeline(),
+        )
+        run_id = uuid4()
+        run = await svc.submit_run(
+            pipeline_id=managed.id,
+            pipeline_version=1,
+            inputs={"url": "https://example.com"},
+            execution_class="default",
+            run_id=run_id,
+            actor="tester",
+        )
+        assert run.run_id == run_id
+        jobs = worker_backend.jobs
+        assert len(jobs) == 1
+        job = jobs[0]
+        assert job.run_id == run_id
+        assert job.kind == "pipeline"
+        assert job.execution_class == "default"
+        assert job.state == JobState.QUEUED
+        assert job.payload == {"url": "https://example.com"}
+    finally:
+        await worker_backend.stop()
+        await backend.close()
+
+
+async def test_run_without_worker_backend_still_records_run(service: ControlService) -> None:
+    project = await _make_project(service)
+    managed, _version = await service.materialize_pipeline(
+        project_slug=project.slug,
+        pipeline_slug="ingest",
+        pipeline=_core_pipeline(),
+    )
+    run = await service.submit_run(
+        pipeline_id=managed.id,
+        pipeline_version=1,
+        inputs={},
+        execution_class="default",
+        run_id=uuid4(),
+    )
+    assert run.status.value == "pending"
+
+
+# ---------------------------------------------------------------- auditing
+
+
+async def test_operational_actions_write_audit_records(service: ControlService) -> None:
+    metadata = InMemoryMetadataStore()
+    svc = ControlService(service.backend, service.blob_store, metadata_store=metadata)
+
+    project = await _make_project(svc)
+    now = _now()
+    pipeline = await svc.create_entity(
+        "pipeline",
+        {
+            "id": uuid4(),
+            "created_at": now,
+            "updated_at": now,
+            "project_id": project.id,
+            "slug": "ingest",
+            "name": "Ingest",
+        },
+    )
+    schedule = await svc.create_entity(
+        "schedule",
+        {
+            "id": uuid4(),
+            "created_at": now,
+            "updated_at": now,
+            "name": "daily",
+            "pipeline_id": pipeline.id,
+            "cron": "0 6 * * *",
+        },
+    )
+
+    await svc.pause_schedule(schedule.id, actor="ops")
+    await svc.resume_schedule(schedule.id, actor="ops")
+    await svc.discard_dead_letter(uuid4(), actor="ops")
+
+    records = metadata.list(MetadataNamespaces.AUDIT_EVENTS)
+    actions = {record.payload["action"] for record in records}
+    assert {"pause", "resume", "discard"} <= actions
+    for record in records:
+        assert record.payload["actor"] == "ops"
+
+
+async def test_read_operations_are_not_audited(service: ControlService) -> None:
+    metadata = InMemoryMetadataStore()
+    svc = ControlService(service.backend, service.blob_store, metadata_store=metadata)
+
+    project = await _make_project(svc)
+    _fetched = await svc.get_entity("project", project.id)
+    _listed = await svc.list_entities("project")
+
+    assert metadata.list(MetadataNamespaces.AUDIT_EVENTS) == []
+
+
+# ----------------------------------------------------------- certification
+
+
+def test_certify_control_plane_passes_for_service() -> None:
+    certify_control_plane(ControlService.__new__(ControlService))
+
+
+def test_certify_control_plane_fails_for_missing_operation() -> None:
+    class Incomplete:
+        pass
+
+    with pytest.raises(CertificationError) as excinfo:
+        certify_control_plane(Incomplete())
+    message = str(excinfo.value)
+    assert "pipeline:run" in message
+    assert "submit_run" in message
+
+
+def test_certify_control_plane_fails_for_unadvertised_operation() -> None:
+    manifest = CONTROL_PLANE_MANIFEST
+    trimmed_entities = tuple(
+        entity
+        for entity in manifest.entities
+        if not (entity.name == "pipeline" and "run" in entity.operations)
+    )
+
+    class CustomManifest:
+        entities = trimmed_entities
+
+    with pytest.raises(CertificationError) as excinfo:
+        certify_control_plane(
+            ControlService.__new__(ControlService), manifest=CustomManifest()
+        )
+    message = str(excinfo.value)
+    assert "pipeline:run" in message
+    assert "not advertised" in message

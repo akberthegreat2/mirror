@@ -17,8 +17,12 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
+from mirror_core.metadata.models import MetadataRecord
+from mirror_core.metadata.store import MetadataStore, SQLiteMetadataStore
 from mirror_core.pipeline import Pipeline as CorePipeline
 from mirror_core.storage import BlobStore, FileSystemBlobStore
+from mirror_core.workers.models import WorkerJob
+from mirror_core.workers.protocols import WorkerBackend
 from mirror_database.models import (
     ENTITY_MODEL_MAP,
     ArchiveRecord,
@@ -45,6 +49,8 @@ from mirror_control.manifest import CONTROL_PLANE_MANIFEST
 
 DEFAULT_BLOB_ENV = "MIRROR_CONTROL_BLOB_ROOT"
 DEFAULT_BLOB_DIR = ".mirror/control-plane/blobs"
+DEFAULT_METADATA_ENV = "MIRROR_CONTROL_METADATA_ROOT"
+DEFAULT_METADATA_DIR = ".mirror/control-plane/metadata.db"
 
 __all__ = [
     "CONTROL_PLANE_MANIFEST",
@@ -52,6 +58,7 @@ __all__ = [
     "content_hash",
     "default_blob_root",
     "default_blob_store",
+    "default_metadata_store",
     "deserialize_pipeline_definition",
     "serialize_pipeline_definition",
 ]
@@ -68,6 +75,13 @@ def default_blob_store() -> FileSystemBlobStore:
     """Build the default filesystem blob store."""
 
     return FileSystemBlobStore(default_blob_root())
+
+
+def default_metadata_store() -> SQLiteMetadataStore:
+    """Build the default SQLite store for operational metadata records."""
+
+    value = os.environ.get(DEFAULT_METADATA_ENV)
+    return SQLiteMetadataStore(Path(value) if value else Path(DEFAULT_METADATA_DIR))
 
 
 def serialize_pipeline_definition(pipeline: CorePipeline) -> bytes:
@@ -131,9 +145,37 @@ class ControlService:
         self,
         backend: DatabaseBackend,
         blob_store: BlobStore | None = None,
+        worker_backend: WorkerBackend | None = None,
+        metadata_store: MetadataStore | None = None,
     ) -> None:
         self.backend = backend
         self.blob_store = blob_store or default_blob_store()
+        self.worker_backend = worker_backend
+        self.metadata_store = metadata_store
+
+    def _audit(
+        self,
+        action: str,
+        subject_id: str | UUID,
+        *,
+        actor: str | None,
+        target: str,
+        extra: Mapping[str, Any] | None = None,
+    ) -> None:
+        """Record an audit event when a metadata store is configured.
+
+        Operational actions are the ones that mutate control-plane state, so
+        they are audited by default; read operations are not.
+        """
+
+        if self.metadata_store is None:
+            return
+        payload: dict[str, Any] = {"actor": actor or "system", "action": action, "target": target}
+        if extra:
+            payload.update(extra)
+        self.metadata_store.put(
+            MetadataRecord.audit_event(subject_id, action, payload=payload)
+        )
 
     @property
     def manifest(self) -> Any:
@@ -309,29 +351,90 @@ class ControlService:
         inputs: Mapping[str, Any],
         execution_class: str,
         run_id: UUID,
+        *,
+        actor: str | None = None,
     ) -> ExecutionRun:
-        return await self.backend.submit_run(pipeline_id, pipeline_version, inputs, execution_class, run_id)
+        """Submit a run and, when a worker backend is configured, queue a job."""
 
-    async def cancel_run(self, run_id: UUID, reason: str) -> ExecutionRun:
-        return await self.backend.cancel_run(run_id, reason)
+        run = await self.backend.submit_run(
+            pipeline_id, pipeline_version, inputs, execution_class, run_id
+        )
+        if self.worker_backend is not None:
+            job = WorkerJob(
+                kind="pipeline",
+                run_id=run_id,
+                pipeline_id=str(pipeline_id),
+                execution_class=execution_class,
+                payload=dict(inputs),
+                metadata={"pipeline_version": pipeline_version},
+            )
+            await self.worker_backend.submit(job)
+        self._audit(
+            "run",
+            run_id,
+            actor=actor,
+            target=f"pipeline:{pipeline_id}",
+            extra={"pipeline_version": pipeline_version, "execution_class": execution_class},
+        )
+        return run
 
-    async def retry_run(self, run_id: UUID) -> ExecutionRun:
-        return await self.backend.retry_run(run_id)
+    async def cancel_run(
+        self,
+        run_id: UUID,
+        reason: str,
+        *,
+        actor: str | None = None,
+    ) -> ExecutionRun:
+        run = await self.backend.cancel_run(run_id, reason)
+        self._audit("cancel", run_id, actor=actor, target=f"execution-run:{run_id}", extra={"reason": reason})
+        return run
 
-    async def pause_schedule(self, schedule_id: UUID) -> Schedule:
-        return await self.backend.pause_schedule(schedule_id)
+    async def retry_run(self, run_id: UUID, *, actor: str | None = None) -> ExecutionRun:
+        run = await self.backend.retry_run(run_id)
+        self._audit("retry", run_id, actor=actor, target=f"execution-run:{run_id}")
+        return run
 
-    async def resume_schedule(self, schedule_id: UUID) -> Schedule:
-        return await self.backend.resume_schedule(schedule_id)
+    async def pause_schedule(self, schedule_id: UUID, *, actor: str | None = None) -> Schedule:
+        schedule = await self.backend.pause_schedule(schedule_id)
+        self._audit("pause", schedule_id, actor=actor, target=f"schedule:{schedule_id}")
+        return schedule
 
-    async def disable_worker(self, worker_id: UUID) -> Worker:
-        return await self.backend.disable_worker(worker_id)
+    async def resume_schedule(self, schedule_id: UUID, *, actor: str | None = None) -> Schedule:
+        schedule = await self.backend.resume_schedule(schedule_id)
+        self._audit("resume", schedule_id, actor=actor, target=f"schedule:{schedule_id}")
+        return schedule
 
-    async def replay_dead_letter(self, dead_letter_id: UUID, keep_original: bool = True) -> ExecutionRun:
-        return await self.backend.replay_dead_letter(dead_letter_id, keep_original)
+    async def disable_worker(self, worker_id: UUID, *, actor: str | None = None) -> Worker:
+        worker = await self.backend.disable_worker(worker_id)
+        self._audit("disable", worker_id, actor=actor, target=f"worker:{worker_id}")
+        return worker
 
-    async def discard_dead_letter(self, dead_letter_id: UUID) -> bool:
-        return await self.backend.discard_dead_letter(dead_letter_id)
+    async def replay_dead_letter(
+        self,
+        dead_letter_id: UUID,
+        keep_original: bool = True,
+        *,
+        actor: str | None = None,
+    ) -> ExecutionRun:
+        run = await self.backend.replay_dead_letter(dead_letter_id, keep_original)
+        self._audit(
+            "replay",
+            dead_letter_id,
+            actor=actor,
+            target=f"dead-letter:{dead_letter_id}",
+            extra={"keep_original": keep_original},
+        )
+        return run
+
+    async def discard_dead_letter(
+        self,
+        dead_letter_id: UUID,
+        *,
+        actor: str | None = None,
+    ) -> bool:
+        discarded = await self.backend.discard_dead_letter(dead_letter_id)
+        self._audit("discard", dead_letter_id, actor=actor, target=f"dead-letter:{dead_letter_id}")
+        return discarded
 
     # --------------------------------------------------- pipeline documents
 

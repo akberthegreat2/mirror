@@ -16,6 +16,8 @@ from uuid import UUID, uuid4
 
 from django.conf import settings
 from mirror_control.service import ControlService, default_blob_store
+from mirror_core.metadata.store import MetadataStore, SQLiteMetadataStore
+from mirror_core.workers.protocols import WorkerBackend
 from mirror_database.models import BaseEntity
 from mirror_database.protocol import DatabaseBackend
 
@@ -32,6 +34,17 @@ def _default_backend() -> DatabaseBackend:
     return backend
 
 
+def default_metadata_store() -> MetadataStore:
+    """Build the metadata store for audit records from the Django settings."""
+
+    configured = getattr(settings, "MIRROR_CONTROL_METADATA_DB", None)
+    if configured:
+        return SQLiteMetadataStore(configured)
+    alias = getattr(settings, "MIRROR_CONTROL_DB_ALIAS", "mirror")
+    name = settings.DATABASES[alias]["NAME"]
+    return SQLiteMetadataStore(f"{name}-metadata.db")
+
+
 def _run(coro: Any) -> Any:
     """Run a ControlService coroutine to completion in the sync Django context."""
 
@@ -45,8 +58,15 @@ class DjangoControlService:
         self,
         backend: DatabaseBackend | None = None,
         blob_store: Any | None = None,
+        worker_backend: WorkerBackend | None = None,
+        metadata_store: MetadataStore | None = None,
     ) -> None:
-        self._service = ControlService(backend or _default_backend(), blob_store or default_blob_store())
+        self._service = ControlService(
+            backend or _default_backend(),
+            blob_store or default_blob_store(),
+            worker_backend=worker_backend,
+            metadata_store=metadata_store or default_metadata_store(),
+        )
 
     @property
     def service(self) -> ControlService:
@@ -107,20 +127,53 @@ class DjangoControlService:
 
     # ------------------------------------------------- operational actions
 
-    def pause_schedule(self, schedule_id: UUID) -> BaseEntity:
-        return _run(self._service.pause_schedule(schedule_id))
+    def submit_run(
+        self,
+        pipeline_id: UUID,
+        pipeline_version: int,
+        inputs: Mapping[str, Any],
+        execution_class: str,
+        run_id: UUID,
+        actor: str | None = None,
+    ) -> BaseEntity:
+        return _run(
+            self._service.submit_run(
+                pipeline_id,
+                pipeline_version,
+                inputs,
+                execution_class,
+                run_id,
+                actor=actor,
+            )
+        )
 
-    def resume_schedule(self, schedule_id: UUID) -> BaseEntity:
-        return _run(self._service.resume_schedule(schedule_id))
+    def pause_schedule(self, schedule_id: UUID, actor: str | None = None) -> BaseEntity:
+        return _run(self._service.pause_schedule(schedule_id, actor=actor))
 
-    def disable_worker(self, worker_id: UUID) -> BaseEntity:
-        return _run(self._service.disable_worker(worker_id))
+    def resume_schedule(self, schedule_id: UUID, actor: str | None = None) -> BaseEntity:
+        return _run(self._service.resume_schedule(schedule_id, actor=actor))
 
-    def cancel_run(self, run_id: UUID, reason: str) -> BaseEntity:
-        return _run(self._service.cancel_run(run_id, reason))
+    def disable_worker(self, worker_id: UUID, actor: str | None = None) -> BaseEntity:
+        return _run(self._service.disable_worker(worker_id, actor=actor))
 
-    def retry_run(self, run_id: UUID) -> BaseEntity:
-        return _run(self._service.retry_run(run_id))
+    def cancel_run(self, run_id: UUID, reason: str, actor: str | None = None) -> BaseEntity:
+        return _run(self._service.cancel_run(run_id, reason, actor=actor))
+
+    def retry_run(self, run_id: UUID, actor: str | None = None) -> BaseEntity:
+        return _run(self._service.retry_run(run_id, actor=actor))
+
+    def replay_dead_letter(
+        self,
+        dead_letter_id: UUID,
+        keep_original: bool = True,
+        actor: str | None = None,
+    ) -> BaseEntity:
+        return _run(
+            self._service.replay_dead_letter(dead_letter_id, keep_original, actor=actor)
+        )
+
+    def discard_dead_letter(self, dead_letter_id: UUID, actor: str | None = None) -> bool:
+        return _run(self._service.discard_dead_letter(dead_letter_id, actor=actor))
 
     # ------------------------------------------------- pipeline documents
 
@@ -175,4 +228,4 @@ class DjangoControlService:
         return _run(self._service.list_pipeline_versions(pipeline_id))
 
 
-__all__ = ["DjangoControlService"]
+__all__ = ["DjangoControlService", "default_metadata_store"]

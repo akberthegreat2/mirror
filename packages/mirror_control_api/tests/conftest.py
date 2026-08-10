@@ -31,11 +31,28 @@ _MIRROR_TABLES = (
 )
 
 
+def _ensure_api_settings() -> None:
+    """Guarantee DRF pagination when another conftest configured first.
+
+    The two control-plane conftests share one process-global settings object.
+    Whichever configures first wins; the other must still make its own surface
+    work. REST list endpoints depend on DRF pagination, so it is applied here
+    even when this package is not the settings owner.
+    """
+
+    rest_framework = dict(getattr(settings, "REST_FRAMEWORK", {}) or {})
+    rest_framework.setdefault(
+        "DEFAULT_PAGINATION_CLASS",
+        "rest_framework.pagination.PageNumberPagination",
+    )
+    rest_framework.setdefault("PAGE_SIZE", 20)
+    settings.REST_FRAMEWORK = rest_framework
+
+
 def _configure() -> None:
     base_dir = Path(__file__).resolve().parents[2]
     if settings.configured:
-        # This package owns the union configuration when the full suite runs
-        # in one process, so it is the first to configure and never mutates.
+        _ensure_api_settings()
         return
     settings.configure(
         SECRET_KEY="mirror-test-key",

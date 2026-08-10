@@ -17,4 +17,13 @@ class NotFoundError(ControlError):
     """Raised when a control-plane entity does not exist."""
 
 
-__all__ = ["ControlError", "NotFoundError", "UnknownEntityError"]
+class CertificationError(ControlError):
+    """Raised when the control-plane manifest and implementation disagree."""
+
+
+__all__ = [
+    "CertificationError",
+    "ControlError",
+    "NotFoundError",
+    "UnknownEntityError",
+]
