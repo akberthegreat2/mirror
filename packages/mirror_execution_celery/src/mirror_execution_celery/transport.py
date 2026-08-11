@@ -8,6 +8,7 @@ from uuid import UUID
 from celery import Celery
 from celery.utils.log import get_task_logger
 from mirror_core.application import Application
+from mirror_core.executor.models import RunOutcome
 from mirror_core.settings import MirrorSettings
 from mirror_core.worker_runtime import WorkerRuntime
 from mirror_core.workers import WorkerJob
@@ -110,14 +111,32 @@ def configure_worker_task(
 
     @app.task(name="mirror.requeue_expired", bind=False)
     def requeue_expired() -> int:
-        """Requeue expired durable jobs without changing Mirror retry policy."""
+        """Requeue expired durable jobs and republish them to execution-class queues.
+
+        A reaper that only changes PostgreSQL state is incomplete (CLAUDE.md §8).
+        The requeued jobs must be republished to their execution-class queue so a
+        worker can claim and resume them.
+        """
         import asyncio
 
         async def _requeue() -> int:
             backend = PostgresWorkerBackend(postgres_dsn, lease_seconds=lease_seconds)
             await backend.start()
             try:
-                return len(backend.requeue_expired())
+                requeued = backend.requeue_expired()
+                for job in requeued:
+                    app.send_task(
+                        "mirror.execute_job",
+                        args=[str(job.job_id)],
+                        queue=queue_name(job.execution_class),
+                        routing_key=queue_name(job.execution_class),
+                    )
+                    logger.info(
+                        "Reaper republished requeued job %s (class=%s)",
+                        job.job_id,
+                        job.execution_class,
+                    )
+                return len(requeued)
             finally:
                 await backend.stop()
 
@@ -180,10 +199,22 @@ async def _execute_job(
             )
             await app.start()
             try:
-                await app.execute_worker_job(job)
+                result = await app.execute_worker_job(job)
             finally:
                 await app.shutdown()
-            await runtime.complete(job.job_id)
+            # Map execution outcome to durable job terminal state (CLAUDE.md §9).
+            # A successful worker-function return without SUCCEEDED is never
+            # treated as success.
+            if result.outcome is RunOutcome.SUCCEEDED:
+                await runtime.complete(job.job_id)
+            elif result.outcome is RunOutcome.CANCELLED:
+                await runtime.cancel(job.job_id, reason="pipeline cancelled")
+            else:
+                # FAILED or PARTIALLY_SUCCEEDED → durable job is FAILED
+                error_summary = "; ".join(
+                    f"{step}: {err}" for step, err in result.errors.items()
+                ) or f"execution outcome: {result.outcome.value}"
+                await runtime.fail(job.job_id, error_summary)
         except BaseException as exc:
             await runtime.fail(job.job_id, str(exc), terminal=True)
             raise

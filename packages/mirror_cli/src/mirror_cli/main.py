@@ -277,11 +277,76 @@ def worker(
 
 @app.command("worker-check")
 def worker_check() -> None:
-    """Report the availability of the shipped worker execution contracts."""
-    console.print(
-        "[green]Worker execution is available[/green] "
-        "(inline, SQLite, PostgreSQL, and Celery transports)."
-    )
+    """Probe the reachability of the worker execution transports.
+
+    Inline and SQLite are always probed locally. PostgreSQL is probed when
+    MIRROR_POSTGRES_DSN is set; Celery is reported as not configured unless a
+    broker probe is added. This is an honest reachability report, not a claim
+    that distributed execution has been exercised end-to-end.
+    """
+
+    async def _run() -> int:
+        import os
+
+        from mirror_core.workers import InlineWorker, SQLiteWorkerBackend
+
+        checks: list[tuple[str, bool | None]] = []
+
+        inline = InlineWorker()
+        checks.append(("inline", await inline.probe()))
+
+        db_path = Path(".mirror/worker.sqlite3")
+        sqlite = SQLiteWorkerBackend(db_path)
+        checks.append((f"sqlite:{db_path}", await sqlite.probe()))
+
+        postgres_dsn = os.environ.get("MIRROR_POSTGRES_DSN")
+        if postgres_dsn:
+            try:
+                from mirror_worker_postgres.backend.worker_backend import (
+                    PostgresWorkerBackend,
+                )
+
+                pg = PostgresWorkerBackend(postgres_dsn)
+                checks.append(("postgres", await pg.probe()))
+            except Exception as exc:  # noqa: BLE001
+                console.print(f"[yellow]postgres probe error: {exc}[/yellow]")
+                checks.append(("postgres", False))
+        else:
+            checks.append(("postgres", None))
+
+        checks.append(("celery-broker", None))
+
+        table = Table(title="Worker execution transports")
+        table.add_column("Transport", style="cyan")
+        table.add_column("Status", style="white")
+        for name, ok in checks:
+            if ok is True:
+                table.add_row(name, "[green]reachable[/green]")
+            elif ok is False:
+                table.add_row(name, "[red]unreachable[/red]")
+            else:
+                table.add_row(name, "[yellow]not configured[/yellow]")
+        console.print(table)
+        console.print(
+            "[dim]Note: reachability is not certification. "
+            "End-to-end distributed execution requires the Docker lab "
+            "(ADR-0049) and is verified separately.[/dim]"
+        )
+        failures = [name for name, ok in checks if ok is False]
+        if failures:
+            console.print(
+                "[red]Unreachable transports:[/red] " + ", ".join(failures)
+            )
+            return 1
+        return 0
+
+    try:
+        code = asyncio.run(_run())
+    except Exception as exc:
+        console.print(f"[red]Error: {exc}[/red]")
+        raise typer.Exit(code=1) from exc
+    if code:
+        raise typer.Exit(code=code)
 
 
 @app.command()
@@ -306,9 +371,36 @@ def list_providers() -> None:
 
 @app.command()
 def status() -> None:
-    """Show application status."""
+    """Show application status with an honest, evidence-based report."""
     console.print("[bold]Mirror Status[/bold]")
-    console.print("Application: Not running")
+
+    async def _run() -> None:
+        settings = MirrorSettings()
+        async with Application(settings=settings) as app_obj:
+            capabilities = list(app_obj.registry.list_capabilities())
+            providers = list(app_obj.registry.list_providers())
+
+        table = Table()
+        table.add_column("Capability", style="cyan")
+        table.add_column("Providers", style="white")
+        capability_providers: dict[str, list[str]] = {}
+        for provider in providers:
+            capability_providers.setdefault(provider.capability, []).append(
+                provider.name
+            )
+        for capability in capabilities:
+            table.add_row(
+                capability.name,
+                ", ".join(capability_providers.get(capability.name, [])),
+            )
+        console.print(table)
+
+    try:
+        asyncio.run(_run())
+    except Exception as exc:
+        console.print(f"[red]Error: {exc}[/red]")
+        console.print("Application: Not running")
+        raise typer.Exit(code=1) from exc
 
 
 @app.callback()

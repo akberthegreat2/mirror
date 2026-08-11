@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mirror-embedding-transformers"
+version = "0.1.0"
+description = "sentence-transformers embedding provider for Mirror Embedding"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Mirror Contributors"}]
+requires-python = ">=3.10"
+dependencies = [
+    "mirror-core>=0.1.0",
+    "mirror-embedding>=0.1.0",
+    "pydantic>=2.0",
+    "sentence-transformers>=2.0",
+]
+
+[project.entry-points."mirror.providers"]
+transformers = "mirror_embedding_transformers.provider:provider"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mirror_embedding_transformers*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+explicit_package_bases = true
+mypy_path = ["src"]
+plugins = ["pydantic.mypy"]

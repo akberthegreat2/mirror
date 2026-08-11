@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mirror-retrieval-bm25"
+version = "0.1.0"
+description = "Mirror BM25 (Okapi) lexical retrieval provider"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Mirror Contributors"}]
+requires-python = ">=3.10"
+dependencies = [
+    "mirror-core>=0.1.0",
+    "mirror-retrieval>=0.1.0",
+    "rank-bm25>=0.2.0",
+    "pydantic>=2.0",
+]
+
+[project.entry-points."mirror.providers"]
+bm25 = "mirror_retrieval_bm25.provider:provider"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mirror_retrieval_bm25*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+explicit_package_bases = true
+mypy_path = ["src"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["rank_bm25.*"]
+ignore_missing_imports = true

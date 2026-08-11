@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mirror-vectorstore-chroma"
+version = "0.1.0"
+description = "Mirror Chroma vector store provider package"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Mirror Contributors"}]
+requires-python = ">=3.10"
+dependencies = [
+    "mirror-core>=0.1.0",
+    "mirror-vectorstore>=0.1.0",
+    "chromadb>=1.0",
+    "pydantic>=2.0",
+]
+
+[project.entry-points."mirror.providers"]
+chroma = "mirror_vectorstore_chroma.provider:provider"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mirror_vectorstore_chroma*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+explicit_package_bases = true
+mypy_path = ["src"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["chromadb.*"]
+ignore_missing_imports = true

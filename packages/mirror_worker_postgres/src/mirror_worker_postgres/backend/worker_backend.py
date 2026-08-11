@@ -7,8 +7,10 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
+import psycopg
 from mirror_core.metadata import encode_metadata_value
 from mirror_core.workers import JobState, WorkerBackend, WorkerJob
+from psycopg.rows import dict_row
 
 from mirror_worker_postgres.backend.connection import _PostgresConnection, _utcnow
 from mirror_worker_postgres.backend.metadata_store import _job_from_row
@@ -43,6 +45,16 @@ class PostgresWorkerBackend(WorkerBackend):
     async def stop(self) -> None:
         await asyncio.to_thread(self._db.close)
         self._started = False
+
+    async def probe(self) -> bool:
+        """Check PostgreSQL connectivity without full startup."""
+        try:
+            conn = psycopg.connect(self.dsn, row_factory=dict_row)
+            conn.execute("SELECT 1")
+            conn.close()
+            return True
+        except Exception:
+            return False
 
     async def submit(self, job: WorkerJob) -> WorkerJob:
         self._ensure_started()

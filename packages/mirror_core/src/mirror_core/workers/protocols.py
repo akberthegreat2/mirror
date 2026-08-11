@@ -27,6 +27,14 @@ class WorkerBackend(Protocol):
         """Release backend resources."""
         ...
 
+    async def probe(self) -> bool:
+        """Check if the backend is reachable without full startup.
+
+        Returns True if the backend infrastructure is available,
+        False if it's not configured or unreachable.
+        """
+        ...
+
     async def submit(self, job: WorkerJob) -> WorkerJob:
         """Submit a job and return its stored representation."""
         ...

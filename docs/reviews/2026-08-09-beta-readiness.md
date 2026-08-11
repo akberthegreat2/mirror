@@ -2223,11 +2223,12 @@ and implemented in the corresponding follow-up pass.
 ## P2 findings (backlog)
 
 The P2 items are retained as backlog, not assigned to the beta gate. The
-executor-internal decomposition items (SKIPPED-vs-BLOCKED semantics, provider
-dependency closure in execution identity) are tracked in the future
-`ADR-0038` draft (`docs/adr/future/`). Scheduler idempotency and
-`max_concurrency`, SQLite lease/fencing configuration, CLI health-check
-honesty, architecture-test derivation from manifests, and CI integration-test
+executor-internal decomposition was implemented (executor split into a
+directory-package) and its ADR is now accepted (`ADR-0038`); the remaining
+SKIPPED-vs-BLOCKED semantics and provider dependency closure in execution
+identity stay on the backlog. Scheduler idempotency and `max_concurrency`,
+SQLite lease/fencing configuration, CLI health-check honesty,
+architecture-test derivation from manifests, and CI integration-test
 deduplication are tracked alongside the beta hardening work.
 
 ## Structural follow-up

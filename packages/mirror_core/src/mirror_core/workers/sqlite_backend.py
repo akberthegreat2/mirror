@@ -43,6 +43,17 @@ class SQLiteWorkerBackend(_SQLiteWorkerBackendBase):
             self._conn = None
         self._started = False
 
+    async def probe(self) -> bool:
+        """Check that the SQLite path is writable without full startup."""
+        try:
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            conn = sqlite3.connect(self._path)
+            conn.execute("SELECT 1")
+            conn.close()
+            return True
+        except sqlite3.Error:
+            return False
+
     async def submit(self, job: WorkerJob) -> WorkerJob:
         self._ensure_started()
         now = _utcnow()

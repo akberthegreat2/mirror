@@ -46,14 +46,19 @@ Before any release is marked beta, run the live certification against the legal
 reference sites in `docs/testing/LEGAL_TEST_SITES.md`. Sites that forbid
 automation are never targeted.
 
-- [ ] Tier 1: Books to Scrape / Quotes to Scrape / Scrape This Site
-- [ ] Tier 2: httpbin.org, JSONPlaceholder
-- [ ] Fetch certification (httpx + playwright)
-- [ ] Crawl certification (local + scrapy)
+```bash
+MIRROR_LIVE_TESTS=1 pytest -m live tests/integration/test_legal_site_certification.py -q
+```
+
+- [ ] `MIRROR_LIVE_TESTS=1 pytest -m live tests/integration/test_legal_site_certification.py -q`
+      passes (15 live tests) against the Tier 1/2 sites
+- [ ] Fetch certification (httpx; playwright where available)
+- [ ] Crawl certification (local; scrapy where available)
 - [ ] Archive certification (WARC)
 - [ ] Knowledge pipeline against real content
 - [ ] Scheduled monitoring against httpbin
-- [ ] Certification evidence recorded in the release handover
+- [ ] Certification evidence (pass/fail + date + commit) recorded in the
+      release handover
 
 ## Provider saturation checks
 

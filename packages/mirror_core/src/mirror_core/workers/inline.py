@@ -27,6 +27,10 @@ class InlineWorker:
         """Mark the backend as stopped."""
         self._started = False
 
+    async def probe(self) -> bool:
+        """In-memory backend is always available."""
+        return True
+
     async def submit(self, job: WorkerJob) -> WorkerJob:
         """Enqueue a new job."""
         self._ensure_started()

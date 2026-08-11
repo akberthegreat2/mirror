@@ -3,16 +3,18 @@
 A checkpoint stores each resource envelope flattened to JSON together with a
 ``module:Class`` path for its payload so the payload can be reconstructed on
 resume without re-running the step.
+
+Checkpoint restore MUST NOT import arbitrary module paths from persisted data
+(CLAUDE.md §18, ADR-0041). Resolution goes through the registered model-type
+registry and already-loaded modules only.
 """
 
-from __future__ import annotations
-
-import importlib
 from collections.abc import Mapping
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
+from mirror_core.metadata.registry import resolve_model_type
 from mirror_core.resource import ResourceEnvelope
 
 
@@ -38,11 +40,11 @@ def restore_envelope(value: Mapping[str, Any]) -> ResourceEnvelope:
 def restore_model(type_path: str, payload: Any) -> Any:
     if payload is None:
         return None
-    module_path, _, class_name = type_path.rpartition(":")
+    model_type = resolve_model_type(type_path)
+    if model_type is None:
+        # Hostile or unregistered type path — degrade to stored value.
+        return payload
     try:
-        module = importlib.import_module(module_path)
-        model_type = getattr(module, class_name)
-        if isinstance(model_type, type) and issubclass(model_type, BaseModel):
-            return model_type.model_validate(payload)
-    except (ImportError, AttributeError, TypeError, ValueError, ValidationError):
+        return model_type.model_validate(payload)
+    except ValidationError:
         return payload
