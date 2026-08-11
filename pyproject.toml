@@ -8,7 +8,11 @@ markers = ["integration: requires real external infrastructure"]
 testpaths = ["packages", "tests"]
 python_files = "test_*.py"
 asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "session"
+# Function-scoped fixture loop: providers and tests share ONE event loop, so
+# loop-sensitive backends (Playwright) cannot wedge by being set up on a
+# session loop and awaited on a per-test loop. A timeout that interrupts one
+# test can no longer corrupt a shared session loop either.
+asyncio_default_fixture_loop_scope = "function"
 addopts = "--import-mode=importlib"
 
 [tool.mypy]

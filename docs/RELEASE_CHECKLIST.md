@@ -51,14 +51,18 @@ MIRROR_LIVE_TESTS=1 pytest -m live tests/integration/test_legal_site_certificati
 ```
 
 - [ ] `MIRROR_LIVE_TESTS=1 pytest -m live tests/integration/test_legal_site_certification.py -q`
-      passes (15 live tests) against the Tier 1/2 sites
-- [ ] Fetch certification (httpx; playwright where available)
-- [ ] Crawl certification (local; scrapy where available)
+      passes (36 live tests) against the Tier 1/2 sites
+- [ ] Fetch certification (httpx, curl_cffi; playwright where available)
+- [ ] Crawl certification (local, scrapy; playwright where available)
 - [ ] Archive certification (WARC)
-- [ ] Knowledge pipeline against real content
+- [ ] Reference-provider certification on real fetched content (embedding,
+      chunk, retrieval, search, monitor, diff, dedup, analyze, enrich,
+      transform, compliance, provenance)
+- [ ] Knowledge/RAG pipeline against real content and a real embedding/LLM
+      backend
 - [ ] Scheduled monitoring against httpbin
 - [ ] Certification evidence (pass/fail + date + commit) recorded in the
-      release handover
+      release handover and in `docs/testing/LIVE_TEST_AUDIT.md`
 
 ## Provider saturation checks
 
@@ -101,3 +105,10 @@ MIRROR_LIVE_TESTS=1 pytest -m live tests/integration/test_legal_site_certificati
 - [ ] `docs/BETA_CONTRACT.md` reflects the independent database backend,
       interface layer, Django-as-adapter, and industry-grade provider policy
 - [ ] Every review finding in `docs/reviews/` has a resolution status
+- [ ] Every capability (20) has an entry in `docs/capabilities/` linking its
+      package README
+- [ ] Every provider (33) has an entry in `docs/providers/` linking its
+      package README
+- [ ] Every package under `packages/` ships a README describing its role
+- [ ] `docs/testing/LIVE_TEST_AUDIT.md` records methodology and results for
+      every capability and provider

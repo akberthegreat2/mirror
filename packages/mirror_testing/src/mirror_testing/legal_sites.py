@@ -114,9 +114,9 @@ class LiveFetchResult:
     duration: float
 
 
-async def _fetch(client: httpx.AsyncClient, url: str) -> LiveFetchResult:
+def _fetch(client: httpx.Client, url: str) -> LiveFetchResult:
     start = time.perf_counter()
-    resp = await client.get(url)
+    resp = client.get(url)
     duration = time.perf_counter() - start
     return LiveFetchResult(
         url=str(resp.url),
@@ -152,9 +152,9 @@ def assert_json(result: LiveFetchResult) -> Any:
 
 
 @pytest.fixture(scope="session")
-async def live_http_client() -> httpx.AsyncClient:
+def live_http_client() -> httpx.Client:
     _skip_if_offline()
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    with httpx.Client(timeout=30.0, follow_redirects=True) as client:
         yield client
 
 
@@ -185,57 +185,140 @@ async def live_local_crawl(live_httpx_fetch: Any) -> Any:
     yield LocalCrawlProvider(fetch=live_httpx_fetch)
 
 
+@pytest.fixture
+async def live_curl_fetch() -> Any:
+    _skip_if_offline()
+    from mirror_fetch_curl_cffi.provider import CurlCFFIProvider
+
+    provider = CurlCFFIProvider()
+    await provider.setup()
+    try:
+        yield provider
+    finally:
+        try:
+            await provider.teardown()
+        except RuntimeError:
+            pass
+
+
+@pytest.fixture
+async def live_playwright_fetch() -> Any:
+    _skip_if_offline()
+    from mirror_fetch_playwright.provider import PlaywrightProvider
+
+    provider = PlaywrightProvider()
+    await provider.setup()
+    try:
+        yield provider
+    finally:
+        try:
+            await provider.teardown()
+        except RuntimeError:
+            pass
+
+
+@pytest.fixture
+async def live_scrapy_crawl() -> Any:
+    _skip_if_offline()
+    from mirror_crawl_scrapy.provider import ScrapyCrawlProvider
+
+    yield ScrapyCrawlProvider()
+
+
+@pytest.fixture
+async def live_playwright_crawl() -> Any:
+    _skip_if_offline()
+    from mirror_crawl_playwright.provider import PlaywrightCrawlProvider
+
+    provider = PlaywrightCrawlProvider()
+    await provider.setup()
+    try:
+        yield provider
+    finally:
+        try:
+            await provider.teardown()
+        except RuntimeError:
+            pass
+
+
+@pytest.fixture
+async def live_warc_archive(tmp_path: Any) -> Any:
+    _skip_if_offline()
+    from mirror_archive_warc.provider import WARCProvider
+    from mirror_archive_warc.settings import WARCSettings
+
+    provider = WARCProvider(WARCSettings(output_dir=tmp_path, compress=False))
+    await provider.setup()
+    try:
+        yield provider
+    finally:
+        try:
+            await provider.teardown()
+        except RuntimeError:
+            pass
+
+
 # --- Per-site convenience fixtures ---
 
 
 @pytest.fixture(scope="session")
-async def httpbin(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "https://httpbin.org/get")
+def httpbin(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://httpbin.org/get")
 
 
 @pytest.fixture(scope="session")
-async def httpbin_headers(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "https://httpbin.org/headers")
+def httpbin_headers(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://httpbin.org/headers")
 
 
 @pytest.fixture(scope="session")
-async def httpbin_cookies(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "https://httpbin.org/cookies/set?test=value")
+def httpbin_cookies(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://httpbin.org/cookies/set?test=value")
 
 
 @pytest.fixture(scope="session")
-async def httpbin_redirect(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "https://httpbin.org/redirect/2")
+def httpbin_redirect(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://httpbin.org/redirect/2")
 
 
 @pytest.fixture(scope="session")
-async def httpbin_delay(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "https://httpbin.org/delay/1")
+def httpbin_delay(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://httpbin.org/delay/1")
 
 
 @pytest.fixture(scope="session")
-async def jsonplaceholder_posts(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "https://jsonplaceholder.typicode.com/posts")
+def jsonplaceholder_posts(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://jsonplaceholder.typicode.com/posts")
 
 
 @pytest.fixture(scope="session")
-async def books_index(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "http://books.toscrape.com/")
+def books_index(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "http://books.toscrape.com/")
 
 
 @pytest.fixture(scope="session")
-async def books_page2(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "http://books.toscrape.com/catalogue/page-2.html")
+def books_page2(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "http://books.toscrape.com/catalogue/page-2.html")
 
 
 @pytest.fixture(scope="session")
-async def quotes_index(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "http://quotes.toscrape.com/")
+def quotes_index(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "http://quotes.toscrape.com/")
 
 
 @pytest.fixture(scope="session")
-async def quotes_login_page(live_http_client: httpx.AsyncClient) -> LiveFetchResult:
-    return await _fetch(live_http_client, "http://quotes.toscrape.com/login")
+def quotes_login_page(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "http://quotes.toscrape.com/login")
+
+
+@pytest.fixture(scope="session")
+def scrapethissite_index(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://scrapethissite.com/")
+
+
+@pytest.fixture(scope="session")
+def scrapethissite_simple(live_http_client: httpx.Client) -> LiveFetchResult:
+    return _fetch(live_http_client, "https://scrapethissite.com/pages/simple/")
 
 
 __all__ = [
@@ -254,11 +337,18 @@ __all__ = [
     "httpbin_redirect",
     "jsonplaceholder_posts",
     "legal_sites",
+    "live_curl_fetch",
     "live_http_client",
     "live_httpx_fetch",
     "live_local_crawl",
+    "live_playwright_crawl",
+    "live_playwright_fetch",
+    "live_scrapy_crawl",
+    "live_warc_archive",
     "quotes_index",
     "quotes_login_page",
+    "scrapethissite_index",
+    "scrapethissite_simple",
     "tier1_sites",
     "tier2_sites",
 ]

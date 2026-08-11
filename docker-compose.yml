@@ -15,6 +15,22 @@ services:
       timeout: 5s
       retries: 12
 
+  pgvector:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_DB: mirror
+      POSTGRES_USER: mirror
+      POSTGRES_PASSWORD: mirror
+    ports:
+      - "5433:5432"
+    volumes:
+      - mirror-pgvector:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mirror -d mirror"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
   redis:
     image: redis:8-alpine
     ports:
@@ -53,7 +69,7 @@ services:
     command: ["celery", "-A", "mirror_execution_celery.app", "beat", "--loglevel", "INFO", "--scheduler", "celery.beat.PersistentScheduler"]
 
   ollama:
-    image: ollama/ollama:0.5
+    image: ollama/ollama:latest
     ports:
       - "11434:11434"
     volumes:
@@ -65,7 +81,7 @@ services:
       retries: 20
 
   chroma:
-    image: chromadb/chroma:1.0
+    image: chromadb/chroma:1.0.0
     ports:
       - "8000:8000"
     environment:
@@ -80,7 +96,7 @@ services:
       retries: 10
 
   opensearch:
-    image: opensearchproject/opensearch:2.17
+    image: opensearchproject/opensearch:2.17.1
     environment:
       - discovery.type=single-node
       - DISABLE_SECURITY_PLUGIN=true
@@ -98,6 +114,7 @@ services:
 
 volumes:
   mirror-postgres:
+  mirror-pgvector:
   mirror-ollama:
   mirror-chroma:
   mirror-opensearch:

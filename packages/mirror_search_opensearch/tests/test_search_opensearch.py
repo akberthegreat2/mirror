@@ -10,12 +10,27 @@ from mirror_search_opensearch.settings import OpenSearchSettings
 
 
 def _opensearch_available() -> bool:
+    # The docker-compose lab runs OpenSearch with the security plugin disabled
+    # (plain HTTP on 9200). Real deployments typically enable TLS; both paths
+    # exercise the actual OpenSearch backend, never a mock.
+    for hosts in (["http://localhost:9200"], ["https://localhost:9200"]):
+        try:
+            client = opensearchpy.OpenSearch(hosts=hosts, verify_certs=False, timeout=2)
+            client.info()
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def _hosts() -> list[str]:
+    # Match the probe: prefer the plain-HTTP lab backend, fall back to TLS.
     try:
-        client = opensearchpy.OpenSearch(hosts=["https://localhost:9200"], verify_certs=False, timeout=2)
+        client = opensearchpy.OpenSearch(hosts=["http://localhost:9200"], verify_certs=False, timeout=2)
         client.info()
-        return True
+        return ["http://localhost:9200"]
     except Exception:
-        return False
+        return ["https://localhost:9200"]
 
 
 _server = pytest.mark.skipif(not _opensearch_available(), reason="OpenSearch not reachable")
@@ -25,7 +40,7 @@ _server = pytest.mark.skipif(not _opensearch_available(), reason="OpenSearch not
 async def test_search_returns_results_for_indexed_doc() -> None:
     from mirror_search_opensearch.provider import OpenSearchProvider
 
-    settings = OpenSearchSettings(index_name="mirror-test-search")
+    settings = OpenSearchSettings(index_name="mirror-test-search", hosts=_hosts())
     provider = OpenSearchProvider(settings)
     client = provider._ensure_client()
 
@@ -50,7 +65,7 @@ async def test_search_returns_results_for_indexed_doc() -> None:
 async def test_search_empty_index_returns_nothing() -> None:
     from mirror_search_opensearch.provider import OpenSearchProvider
 
-    settings = OpenSearchSettings(index_name="mirror-test-empty")
+    settings = OpenSearchSettings(index_name="mirror-test-empty", hosts=_hosts())
     provider = OpenSearchProvider(settings)
     client = provider._ensure_client()
 

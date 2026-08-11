@@ -19,3 +19,7 @@ Each capability is a domain contract. Providers implement the contract. A capabi
 - [mirror_scrape](../../packages/mirror_scrape/README.md) — Mirror scrape capability package
 - [mirror_search](../../packages/mirror_search/README.md) — Mirror search capability package
 - [mirror_vectorstore](../../packages/mirror_vectorstore/README.md) — Mirror vector storage capability package
+- [mirror_llm](../../packages/mirror_llm/README.md) — Mirror LLM generation capability package
+- [mirror_privacy_guard](../../packages/mirror_privacy_guard/README.md) — Mirror PII detection/redaction capability package
+- [mirror_transform](../../packages/mirror_transform/README.md) — Mirror transform capability package
+- [mirror_database](../../packages/mirror_database/README.md) — Mirror framework-neutral database backend contract (ADR-0042)

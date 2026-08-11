@@ -11,7 +11,9 @@ Mirror keeps **architecture decisions**, **implementation notes**, and
 - `tutorials/` — practical examples.
 - `distributed/` — Docker, PostgreSQL, Redis, Celery, leases, and recovery.
 - `capabilities/` — capability catalog and provider map.
+- `providers/` — provider catalog grouped by capability family.
 - `reference/` — package and command reference.
+- `testing/` — legal reference sites, lab certification, and the live-test audit.
 
 ## Engineering records
 

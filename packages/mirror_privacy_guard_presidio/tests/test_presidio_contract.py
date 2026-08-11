@@ -6,7 +6,7 @@ import importlib.metadata
 import inspect
 
 from mirror_core.extensions.models import ProviderManifest
-from mirror_privacy_guard_presidio import provider as provider_manifest
+from mirror_privacy_guard_presidio.provider import provider as provider_manifest
 
 
 def test_manifest_declares_privacy_guard_capability() -> None:

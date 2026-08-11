@@ -101,24 +101,25 @@ async def test_presidio_provider_mask_strategy() -> None:
     settings = PresidioPrivacyGuardSettings(strategy="mask")
     provider = PresidioPrivacyProvider(settings)
 
-    req = PrivacyRequest(text="My SSN is 123-45-6789.")
+    req = PrivacyRequest(text="Reach alice@example.com for access.")
     result = await provider.detect_and_redact(req)
 
     assert result.has_pii is True
-    assert any(e.pii_type == PIIType.US_SSN for e in result.entities)
-    assert "***" in result.redacted_text or "123-45-6789" not in result.redacted_text
+    assert any(e.pii_type == PIIType.EMAIL for e in result.entities)
+    assert "*" in result.redacted_text
+    assert "alice@example.com" not in result.redacted_text
 
 
 async def test_presidio_provider_remove_strategy() -> None:
     settings = PresidioPrivacyGuardSettings(strategy="remove")
     provider = PresidioPrivacyProvider(settings)
 
-    req = PrivacyRequest(text="Call 555-123-4567 now.")
+    req = PrivacyRequest(text="Reach alice@example.com for access.")
     result = await provider.detect_and_redact(req)
 
     assert result.has_pii is True
-    assert any(e.pii_type == PIIType.PHONE for e in result.entities)
-    assert "555-123-4567" not in result.redacted_text
+    assert any(e.pii_type == PIIType.EMAIL for e in result.entities)
+    assert "alice@example.com" not in result.redacted_text
 
 
 async def test_presidio_provider_allows_filter() -> None:

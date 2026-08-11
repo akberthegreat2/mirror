@@ -19,6 +19,12 @@ Mirror currently publishes capability packages for:
 - Vector storage
 - Provenance
 - Compliance
+- LLM
+- Privacy guard
+- Transform
+
+In addition, the independent database backend (`mirror_database`) is a
+framework-neutral contract family (ADR-0042).
 
 Each capability has its own package and contract. Provider packages are separate
 from capability packages.

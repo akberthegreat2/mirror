@@ -13,7 +13,13 @@ from typing import Any
 
 from mirror_core.extensions.models import ProviderManifest
 from mirror_privacy_guard.errors import PrivacyGuardError
-from mirror_privacy_guard.models import PIIEntity, PIIType, PrivacyRequest, PrivacyResult
+from mirror_privacy_guard.models import (
+    PIIEntity,
+    PIIType,
+    PrivacyRequest,
+    PrivacyResult,
+    RedactionStrategy,
+)
 from mirror_privacy_guard.protocol import PrivacyGuard
 
 from .settings import PresidioPrivacyGuardSettings
@@ -21,10 +27,11 @@ from .settings import PresidioPrivacyGuardSettings
 logger = logging.getLogger(__name__)
 
 try:
-    from presidio_analyzer import AnalyzerEngine
+    from presidio_analyzer import AnalyzerEngine, RecognizerResult
     from presidio_anonymizer import AnonymizerEngine
 except ImportError:  # pragma: no cover - Presidio optional
     AnalyzerEngine = None  # type: ignore[assignment,misc]
+    RecognizerResult = None  # type: ignore[assignment,misc]
     AnonymizerEngine = None  # type: ignore[assignment,misc]
 
 
@@ -51,6 +58,13 @@ class PresidioPrivacyProvider(PrivacyGuard):
 
     async def detect_and_redact(self, request: PrivacyRequest) -> PrivacyResult:
         analyzer, anonymizer = self._ensure_engines()
+        # settings.strategy is the provider default; an explicitly-set
+        # request-level strategy overrides it.
+        strategy: RedactionStrategy = (
+            request.strategy
+            if "strategy" in request.model_fields_set
+            else self._settings.strategy
+        )
 
         try:
             results = analyzer.analyze(
@@ -71,7 +85,7 @@ class PresidioPrivacyProvider(PrivacyGuard):
             entities.append(
                 PIIEntity(
                     pii_type=_map_entity_type(result.entity_type),
-                    text=result.text,
+                    text=request.text[int(result.start) : int(result.end)],
                     start=int(result.start),
                     end=int(result.end),
                     confidence=float(result.score),
@@ -82,7 +96,7 @@ class PresidioPrivacyProvider(PrivacyGuard):
         entities.sort(key=lambda e: e.start)
         redacted = request.text
         if entities:
-            redacted = _apply_redaction(request, anonymizer)
+            redacted = _apply_redaction(request, anonymizer, entities, strategy)
 
         return PrivacyResult(
             redacted_text=redacted,
@@ -131,35 +145,42 @@ def _map_entity_type(presidio_name: str) -> PIIType:
     return reverse.get(presidio_name, PIIType.OTHER)
 
 
-def _apply_redaction(request: PrivacyRequest, anonymizer: Any) -> str:
+def _apply_redaction(
+    request: PrivacyRequest,
+    anonymizer: Any,
+    entities: list[PIIEntity],
+    strategy: RedactionStrategy,
+) -> str:
     """Apply the configured redaction strategy via Presidio's anonymizer."""
     from presidio_anonymizer.entities import OperatorConfig
 
+    # The anonymizer expects RecognizerResult instances, not plain dicts.
     entities_for_presidio = [
-        {
-            "entity_type": _presidio_name(e.pii_type),
-            "start": e.start,
-            "end": e.end,
-            "score": e.confidence,
-            "text": e.text,
-        }
-        for e in request.entities
+        RecognizerResult(
+            entity_type=_presidio_name(e.pii_type),
+            start=e.start,
+            end=e.end,
+            score=e.confidence,
+        )
+        for e in entities
     ]
 
-    operators = {}
-    if request.strategy.value == "remove":
-        operations = {"DEFAULT": {"type": "replace", "new_value": ""}}
-    elif request.strategy.value == "mask":
-        operations = {"DEFAULT": {"type": "mask", "masking_char": "*", "chars_to_mask": 12, "from_end": True}}
-    elif request.strategy.value == "hash":
-        operations = {"DEFAULT": {"type": "hash"}}
+    if strategy.value == "remove":
+        operator = OperatorConfig("replace", {"new_value": ""})
+    elif strategy.value == "mask":
+        operator = OperatorConfig(
+            "mask",
+            {"masking_char": "*", "chars_to_mask": 12, "from_end": True},
+        )
+    elif strategy.value == "hash":
+        operator = OperatorConfig("hash", {})
     else:  # REPLACE
-        operations = {"DEFAULT": {"type": "replace", "new_value": "[REDACTED]"}}
+        operator = OperatorConfig("replace", {"new_value": "[REDACTED]"})
 
     return anonymizer.anonymize(
         text=request.text,
         analyzer_results=entities_for_presidio,
-        operators=operators,
+        operators={"DEFAULT": operator},
     ).text
 
 

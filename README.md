@@ -109,33 +109,43 @@ fallback, middleware, and execution policy remain Core responsibilities.
 
 ## Capabilities and providers
 
-A **capability** is a domain contract. A **provider** is a concrete implementation.
-They are separate packages and can be replaced without changing Core.
+A **capability** is a domain contract. A **provider** is a concrete
+implementation. They are separate packages and can be replaced without changing
+Core. The repository currently publishes **20 capabilities** and **33 providers**
+(plus an independent framework-neutral database contract family).
 
-| Capability family | Current provider packages in this repository |
+| Capability family | Provider packages in this repository |
 |---|---|
-| Fetch | `mirror-fetch-httpx`, `mirror-fetch-playwright` |
-| Crawl | `mirror-crawl-scrapy` (Scrapy) + `mirror-crawl-local` (local/reference) |
+| Fetch | `mirror-fetch-httpx`, `mirror-fetch-curl-cffi`, `mirror-fetch-playwright` |
+| Crawl | `mirror-crawl-local`, `mirror-crawl-scrapy`, `mirror-crawl-playwright` |
 | Archive | `mirror-archive-warc` |
 | Scrape | `mirror-scrape-basic` |
-| Search | `mirror-search-memory` |
 | Analyze | `mirror-analyze-basic` |
 | Diff | `mirror-diff-text` |
 | Monitor | `mirror-monitor-memory` |
 | Normalize | `mirror-normalize-text` |
 | Enrich | `mirror-enrich-text` |
-| Chunk | `mirror-chunk-text` |
+| Chunk | `mirror-chunk-text`, `mirror-chunk-semantic` |
 | Dedup | `mirror-dedup-hash` |
-| Embedding | `mirror-embedding-hash` |
-| Retrieval | `mirror-retrieval-memory` |
-| Vector store | `mirror-vectorstore-memory` |
+| Embedding | `mirror-embedding-hash`, `mirror-embedding-ollama`, `mirror-embedding-transformers` |
+| LLM | `mirror-llm-ollama` |
+| Retrieval | `mirror-retrieval-memory`, `mirror-retrieval-bm25`, `mirror-retrieval-hybrid` |
+| Vector store | `mirror-vectorstore-memory`, `mirror-vectorstore-chroma`, `mirror-vectorstore-pgvector` |
+| Search | `mirror-search-memory`, `mirror-search-sqlite`, `mirror-search-opensearch` |
 | Provenance | `mirror-provenance-resource` |
 | Compliance | `mirror-compliance-rules` |
+| Privacy guard | `mirror-privacy-guard-presidio` |
+| Transform | `mirror-transform-map` |
+| Database (contract family) | `mirror-database-sqlite` |
 
 This table describes the repository as it exists; it is **not** a promise that
 all providers are production-grade or that a memory/local provider should be
-used for production. The capability and provider READMEs are the authoritative
-package-level references.
+used for production. Industry-backed providers wrap an established upstream
+tool (HTTPX, curl_cffi, Playwright, Scrapy, warcio, SQLite, OpenSearch, Chroma,
+PostgreSQL+pgvector, Ollama, sentence-transformers, Presidio, Tesseract).
+Memory/hash/local/basic providers are explicitly reference implementations for
+tests, local development, and deterministic examples. The capability and
+provider READMEs are the authoritative package-level references.
 
 ## Package boundaries
 
@@ -202,3 +212,20 @@ pytest -m integration
 
 Redis/Celery integration tests use a real Redis broker when the local service is
 available. No Redis or PostgreSQL shim is part of Mirror.
+
+### Real-world testing
+
+Before a beta release, Mirror must be certified against legal reference sites
+(sites that forbid automation are never targeted). The live certification suite
+fetches and crawls real pages, archives a real WARC, runs the knowledge/RAG
+pipeline against a real embedding/LLM backend, and exercises every provider
+family:
+
+```bash
+MIRROR_LIVE_TESTS=1 pytest -m live tests/integration/test_legal_site_certification.py -q
+```
+
+Gated real-backend tests (PostgreSQL+pgvector, Chroma, OpenSearch, Ollama,
+Presidio, sentence-transformers, SQLite FTS5) self-skip when the backend is not
+reachable. See `docs/testing/` for the legal-site catalog, lab certification,
+and the live-test audit.
