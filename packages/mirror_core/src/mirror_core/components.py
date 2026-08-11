@@ -112,13 +112,51 @@ class ComponentManager:
         dependency_instances: dict[str, Any],
     ) -> Any:
         """Instantiate a provider with settings plus any protocol dependencies."""
+        if inspect.isclass(factory) and not self._accepts_constructor_arguments(
+            factory
+        ):
+            return factory()
+        parameters = self._factory_parameters(factory)
+        accepts_var_kwargs = any(
+            parameter.kind is inspect.Parameter.VAR_KEYWORD
+            for parameter in parameters.values()
+        )
+        accepts_settings = accepts_var_kwargs or "settings" in parameters
         kwargs = self._build_dependency_kwargs(factory, dependency_instances)
+        if accepts_settings:
+            kwargs["settings"] = settings_instance
+        if kwargs:
+            return factory(**kwargs)
+        return factory()
+
+    @staticmethod
+    def _accepts_constructor_arguments(factory: Any) -> bool:
+        """Return True when the class constructor accepts arguments.
+
+        Classes that inherit ``object.__init__`` or typing's
+        ``_no_init_or_replace_init`` sentinel (Protocol/Generic without their
+        own ``__init__``) report a ``(*args, **kwargs)`` signature on Python
+        3.12+ but still reject constructor arguments.
+        """
+        if not inspect.isclass(factory):
+            return True
+        init = factory.__init__
+        if init is object.__init__:
+            return False
+        return getattr(init, "__name__", None) != "_no_init_or_replace_init"
+
+    @staticmethod
+    def _factory_parameters(factory: Any) -> dict[str, inspect.Parameter]:
+        """Return the accepted constructor parameters, excluding self/cls."""
         try:
-            return factory(settings_instance, **kwargs)
-        except TypeError:
-            if kwargs:
-                raise
-            return factory(settings_instance)
+            signature = inspect.signature(factory)
+        except (TypeError, ValueError):
+            return {}
+        return {
+            name: parameter
+            for name, parameter in signature.parameters.items()
+            if name not in {"self", "cls"}
+        }
 
     def _build_dependency_kwargs(
         self, factory: Any, dependency_instances: dict[str, Any]

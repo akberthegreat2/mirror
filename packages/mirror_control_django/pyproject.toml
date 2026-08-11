@@ -12,13 +12,15 @@ authors = [{name = "Mirror Contributors"}]
 requires-python = ">=3.10"
 dependencies = [
     "mirror-core>=0.1.0",
-    "django>=6.1",
+    "mirror-control>=0.1.0",
+    "mirror-database-sqlite>=0.1.0",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
 
 [project.optional-dependencies]
+django = ["django>=6.1"]
 test = ["pytest>=7.0"]
 dev = ["ruff>=0.1.0", "mypy>=1.0"]
 

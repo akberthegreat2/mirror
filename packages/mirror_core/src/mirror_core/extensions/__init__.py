@@ -34,11 +34,21 @@ from mirror_core.extensions.registry import (
     ProviderRegistry,
     StorageRegistry,
 )
+from mirror_core.extensions.saturation import (
+    FLAGSHIP_CAPABILITIES,
+    SATURATION_THRESHOLD,
+    CapabilitySaturation,
+    SaturationReport,
+    provider_saturation,
+)
 from mirror_core.extensions.validation import validate_manifests
 
 __all__ = [
+    "FLAGSHIP_CAPABILITIES",
+    "SATURATION_THRESHOLD",
     "CapabilityManifest",
     "CapabilityRegistry",
+    "CapabilitySaturation",
     "Dependency",
     "DiscoveryError",
     "ExtensionError",
@@ -56,9 +66,11 @@ __all__ = [
     "ProviderManifest",
     "ProviderRegistry",
     "RegistryError",
+    "SaturationReport",
     "StorageManifest",
     "StorageRegistry",
     "ValidationError",
     "discover_extensions",
+    "provider_saturation",
     "validate_manifests",
 ]

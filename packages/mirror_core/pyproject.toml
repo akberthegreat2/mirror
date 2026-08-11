@@ -26,6 +26,7 @@ classifiers = [
 [project.optional-dependencies]
 test = ["pytest>=7.0", "pytest-asyncio>=0.21", "pytest-cov>=4.0"]
 dev = ["ruff>=0.1.0", "mypy>=1.0"]
+yaml = ["PyYAML>=6.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -45,5 +46,5 @@ mypy_path = ["src"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["tomllib", "yaml"]
+module = ["tomllib", "tomli", "yaml"]
 ignore_missing_imports = true

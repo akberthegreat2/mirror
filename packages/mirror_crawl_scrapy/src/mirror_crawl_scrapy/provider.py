@@ -70,6 +70,9 @@ def _scrapy_child(
 
         class MirrorSpider(scrapy.Spider):
             name = "mirror-crawl"
+            # Scrapy >= 2.13 calls async def start(); start_urls is the
+            # fallback seed for engines that do not call start() directly.
+            start_urls = [seed]
             custom_settings: ClassVar[dict[str, object]] = {
                 "USER_AGENT": settings.user_agent,
                 "LOG_ENABLED": False,
@@ -78,7 +81,7 @@ def _scrapy_child(
                 "TELNETCONSOLE_ENABLED": False,
             }
 
-            def start_requests(self):
+            async def start(self):
                 yield scrapy.Request(
                     seed, meta={"mirror_depth": 0, "mirror_parent": None}
                 )

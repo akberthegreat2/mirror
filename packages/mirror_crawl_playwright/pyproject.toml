@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mirror-crawl-playwright"
+version = "0.1.0"
+description = "Playwright browser crawl provider for Mirror"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Mirror Contributors"}]
+requires-python = ">=3.10"
+dependencies = [
+    "mirror-core>=0.1.0",
+    "mirror-crawl>=0.1.0",
+    "playwright>=1.40",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0", "pytest-asyncio>=0.21"]
+dev = ["ruff", "mypy"]
+
+[project.entry-points."mirror.providers"]
+playwright = "mirror_crawl_playwright:provider"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mirror_crawl_playwright*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+explicit_package_bases = true
+mypy_path = ["src"]

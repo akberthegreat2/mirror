@@ -8,6 +8,7 @@ markers = ["integration: requires real external infrastructure"]
 testpaths = ["packages", "tests"]
 python_files = "test_*.py"
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 addopts = "--import-mode=importlib"
 
 [tool.mypy]
@@ -42,9 +43,16 @@ module = [
     "celery.*",
     "scrapy.*",
     "warcio.*",
+    "rank_bm25",
 ]
 ignore_missing_imports = true
 disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+# chromadb is typed but pulls numpy stubs that require Python 3.12+; we
+# type-check at 3.10, so treat the whole backend as an opaque dependency.
+module = ["chromadb.*"]
+follow_imports = "skip"
 
 [tool.ruff]
 line-length = 400

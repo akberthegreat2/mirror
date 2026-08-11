@@ -1,1 +1,24 @@
-{"id":"managed","steps":[{"id":"crawl","capability":"crawl"}]}
+{
+  "id": "managed",
+  "inputs": {},
+  "metadata": {},
+  "outputs": [],
+  "steps": [
+    {
+      "capability": "crawl",
+      "checkpoint": null,
+      "compensation": null,
+      "condition": null,
+      "fallback": null,
+      "id": "crawl",
+      "input": {},
+      "metadata": {},
+      "on_error": "abort",
+      "outputs": [],
+      "provider": null,
+      "retry": null,
+      "timeout": null
+    }
+  ],
+  "version": "1.0"
+}

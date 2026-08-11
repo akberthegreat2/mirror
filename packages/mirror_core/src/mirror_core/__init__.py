@@ -163,7 +163,6 @@ __all__ = [
     "SQLiteExecutionStore",
     "SQLiteLeaseManager",
     "SQLiteMetadataStore",
-    "register_metadata_enum",
     "SQLiteScheduler",
     "SQLiteWorkerBackend",
     "ScheduleRecord",
@@ -181,4 +180,5 @@ __all__ = [
     "WorkerLease",
     "WorkerRuntime",
     "discover",
+    "register_metadata_enum",
 ]

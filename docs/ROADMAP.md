@@ -74,6 +74,39 @@
 - [ ] Domain-specific long-tail capability catalogs
 - [x] Open-source-first default provider guidance
 
+## Phase 7 — Beta structural phase
+
+The beta release plan specified in the ADRs and PR notes under `docs/adr/` and
+`docs/PRs/`. The structure is documented and accepted; implementation proceeds
+in follow-up passes after review.
+
+- [x] ADR-0042 independent swappable database backend (`PR_BETA_DB_BACKEND.md`)
+- [x] ADR-0043 framework-neutral interface layer (`PR_BETA_INTERFACE_LAYER.md`)
+- [x] ADR-0044 Django as a thin adapter over Mirror's database
+      (`PR_BETA_DJANGO_ADAPTER.md`)
+- [x] ADR-0045 control-plane operations and security contract
+      (`PR_BETA_CONTROL_OPS_AND_SECURITY.md`)
+- [x] ADR-0046 provider saturation and industry-grade backend policy
+      (`PR_BETA_PROVIDER_SATURATION.md`); the per-capability provider list is
+      `docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`
+- [x] ADR-0047 knowledge/RAG ecosystem saturation (`PR_BETA_RAG_ECOSYSTEM.md`)
+- [x] ADR-0048 distributed recovery and worker result semantics
+      (`PR_BETA_DISTRIBUTED_RECOVERY.md`)
+- [x] ADR-0049 beta production-readiness gate
+- [x] ADR-0050 remaining review hardening
+- [x] ADR-0051 reference provider retirement and industry-grade replacement
+      (`PR_BETA_REFERENCE_RETIREMENT.md`)
+- [ ] Implement the `mirror_database` contract family and SQLite/Postgres
+      backends
+- [ ] Implement the `mirror_control` service and the CLI/admin/DRF adapters
+- [ ] Rework Django onto unmanaged models, DB router, and custom user model
+- [ ] Implement control-plane operations and fail-closed REST security
+- [ ] Add the industry-grade providers (fetch/crawl/embedding/vectorstore/
+      retrieval/search saturation)
+- [ ] Add the knowledge/RAG providers and distilled-model lab tests
+- [ ] Fix reaper republication and worker terminal-state mapping
+- [ ] Pass the legal-test-site and Docker-lab release gate
+
 ## Proposed architecture directions
 
 The following ideas are tracked as proposed ADRs rather than alpha commitments:
@@ -81,8 +114,19 @@ The following ideas are tracked as proposed ADRs rather than alpha commitments:
 - trusted execution pipeline;
 - extension model and plugin lifecycle;
 - distributed execution and Celery worker integration (implemented; certification remains a deployment test);
-- open-source-first provider policy;
 - executor internal decomposition.
+
+Accepted since the alpha roadmap was written: the open-source-first provider
+policy (ADR-0033), the capability expansion and vertical ecosystem model
+(ADR-0034, ratified by ADR-0046), the knowledge-infrastructure capability model
+(ADR-0026), and the trusted execution pipeline (ADR-0027). During the beta
+structural phase the remaining proposed drafts were promoted to accepted as
+their decisions were already implemented: ADR-0030 (metadata store),
+ADR-0031 (scheduler backend), ADR-0035 (certification/lab validation),
+ADR-0036 (operational stack), ADR-0037 (enterprise execution semantics),
+ADR-0038 (executor decomposition), and ADR-0052 (distributed worker
+architecture). The ADR record is now complete: ADR-0001 through ADR-0052, no
+open drafts.
 
 ## Phase D — Certification and interface convergence
 

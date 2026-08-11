@@ -118,12 +118,12 @@ def test_worker_command_initializes_backend(tmp_path: Path, monkeypatch: pytest.
 
 
 def test_worker_check_command() -> None:
-    """Worker status must reflect the shipped execution mechanisms."""
+    """Worker check must probe real transports and report honestly."""
     result = runner.invoke(app, ["worker-check"])
     assert result.exit_code == 0
-    assert "available" in result.output
-    assert "PostgreSQL" in result.output
-    assert "Celery" in result.output
+    assert "reachable" in result.output
+    assert "inline" in result.output
+    assert "Worker execution transports" in result.output
 
 
 def test_manifest_show_command() -> None:

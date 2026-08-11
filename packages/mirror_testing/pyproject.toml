@@ -14,6 +14,7 @@ dependencies = [
     "mirror-core>=0.1.0",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
+    "httpx>=0.27",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -24,6 +25,9 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = ["ruff", "mypy"]
+
+[project.entry-points.pytest11]
+mirror_testing = "mirror_testing.legal_sites"
 
 [tool.setuptools.packages.find]
 where = ["src"]

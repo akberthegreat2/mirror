@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local runtime state and generated test artifacts
+/scratch/
+/data/
+.mirror/worker.sqlite3
+packages/mirror_control_api/.mirror/

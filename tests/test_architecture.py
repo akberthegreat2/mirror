@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import subprocess
 from pathlib import Path
 
 import mirror_cli.main as cli_main
@@ -110,6 +111,7 @@ def test_first_party_providers_conform_to_protocols() -> None:
     from mirror_diff.protocol import Diff
     from mirror_diff_text.provider import TextDiffProvider
     from mirror_fetch.protocol import Fetch
+    from mirror_fetch_curl_cffi.provider import CurlCFFIProvider
     from mirror_fetch_httpx.provider import HTTPXProvider
     from mirror_fetch_playwright.provider import PlaywrightProvider
     from mirror_monitor.protocol import Monitor
@@ -125,6 +127,7 @@ def test_first_party_providers_conform_to_protocols() -> None:
 
     assert isinstance(HTTPXProvider(), Fetch)
     assert isinstance(PlaywrightProvider(), Fetch)
+    assert isinstance(CurlCFFIProvider(), Fetch)
     assert isinstance(WARCProvider(), Archive)
     assert isinstance(SearchMemoryProvider(), Search)
     assert isinstance(BasicAnalyzeProvider(), Analyze)
@@ -194,16 +197,28 @@ def test_resource_envelope_is_immutable() -> None:
 
 
 def test_no_packaging_artifacts_are_checked_in() -> None:
+    """Tracked repository paths must not contain packaging build artifacts.
+
+    Editable installs drop ``.egg-info/`` into the source tree, so a raw
+    filesystem scan fails on every fresh-venv install even though nothing was
+    committed. Only paths Git tracks are reviewed.
+    """
+    tracked = subprocess.run(
+        ["git", "ls-files", "--cached"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
     bad_paths: list[str] = []
-    for path in ROOT.rglob("*"):
-        parts = set(path.parts)
+    for relative in tracked:
+        parts = set(Path(relative).parts)
         if (
-            path.suffix == ".egg-info"
-            or path.name.endswith(".egg-info")
+            any(part.endswith(".egg-info") for part in parts)
             or "build" in parts
             or "dist" in parts
         ):
-            bad_paths.append(str(path.relative_to(ROOT)))
+            bad_paths.append(relative)
     assert not bad_paths, f"Checked-in packaging artifacts found: {bad_paths}"
 
 
