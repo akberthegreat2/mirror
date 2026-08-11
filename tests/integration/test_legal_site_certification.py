@@ -12,6 +12,7 @@ The gate is recorded as evidence in the release handover per ADR-0049 §1.
 from __future__ import annotations
 
 import asyncio
+import os
 
 import pytest
 
@@ -601,6 +602,8 @@ class TestReferenceProviderCertification:
 
     async def test_monitor_provider_real_httpbin(self) -> None:
         """The actual MemoryMonitorProvider checks a live legal site."""
+        if os.environ.get("MIRROR_LIVE_TESTS") != "1":
+            pytest.skip("Live network test requires MIRROR_LIVE_TESTS=1")
         from mirror_monitor.models import MonitorRequest
         from mirror_monitor_memory.provider import MemoryMonitorProvider
 

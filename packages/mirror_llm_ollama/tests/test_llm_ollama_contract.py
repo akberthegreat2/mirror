@@ -6,7 +6,7 @@ import importlib.metadata
 import inspect
 
 from mirror_core.extensions.models import ProviderManifest
-from mirror_llm_ollama import provider as provider_manifest
+from mirror_llm_ollama.provider import provider as provider_manifest
 
 
 def test_manifest_declares_llm_capability() -> None:

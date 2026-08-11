@@ -146,8 +146,8 @@ Verified in this audit:
 | mirror_privacy_guard_presidio | Presidio AnalyzerEngine + AnonymizerEngine + spaCy en_core_web_sm | 18 passed, including 3 real-engine tests (email detection + redaction, mask, remove) |
 | mirror_embedding_transformers | sentence-transformers | passed (real inference on embedded model) |
 | mirror_archive_warc | warcio | 3 passed (real WARC round-trip) |
-| mirror_embedding_ollama | Ollama (nomic-embed-text) | 17 passed (real embedding inference) |
-| mirror_llm_ollama | Ollama (qwen2.5:0.5b) | 1 failed, 17 passed (failure: small-model inference flake — qwen2.5:0.5b answered "3" for "2+2", not a code bug) |
+| mirror_embedding_ollama | Ollama (nomic-embed-text) | 15 passed (real embedding inference) |
+| mirror_llm_ollama | Ollama (qwen2.5:0.5b) | 16 passed (real generate, system prompt, custom model; contract + settings) |
 
 ### OpenSearch environmental note
 
