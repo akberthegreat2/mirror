@@ -101,4 +101,6 @@ Those remain owned elsewhere.
 
 ## Status Summary
 
-This ADR is Proposed until the codebase contains a concrete metadata store contract in `mirror_core` and at least one implementation validated by integration tests.
+Ratified 2026-08-10. The metadata store contract exists in `mirror_core`
+(`MetadataStore` protocol) with SQLite and PostgreSQL implementations validated
+by integration tests.

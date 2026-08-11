@@ -34,7 +34,7 @@ contracts.
 - ADR-0026 knowledge infrastructure capability model
 - ADR-0027 trusted execution pipeline
 - ADR-0028 extension model and plugin lifecycle
-- ADR-0029 distributed execution and Celery worker integration
+- ~~ADR-0029 distributed execution and Celery worker integration~~ **Superseded** by ADR-0032
 - ADR-0030 metadata store architecture
 - ADR-0031 scheduler backend architecture
 - ADR-0032 distributed execution with Celery, Redis, and PostgreSQL

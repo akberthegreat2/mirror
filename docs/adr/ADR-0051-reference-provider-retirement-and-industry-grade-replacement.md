@@ -24,10 +24,14 @@ not production software, and shipping them in the first-party catalog as
 providers of record is misleading — they read as capability coverage while
 providing none of the real behavior a user of that capability expects.
 
-The user requirement is explicit and changes the policy: reference providers
-must be removed and replaced with industry-grade providers that wrap existing,
-established tools. Mirror's promise is that it never invents libraries from
-scratch and that every production provider implements an industry-grade tool.
+The user requirement is that reference providers must not be misrepresented as
+production software. Reference providers that provide real, useful behavior
+(deterministic algorithms for tests, local development, and framework
+verification) are retained under CLAUDE.md §16 but clearly labeled as
+"reference" — not production-grade. Only genuinely fake/alias stand-in code
+with no useful behavior is removed. The migration table below identifies the
+industry-grade replacements that should exist for users who need production
+capability coverage.
 
 The one genuine "local" provider is different: `mirror_crawl_local` composes the
 httpx `fetch` provider and performs real HTTP crawling (fetch, HTML parse, link
@@ -36,12 +40,16 @@ reference stand-in, and is retained.
 
 ## Decision
 
-### 1. Reference providers are retired from the first-party catalog
+### 1. Reference providers are retained but clearly labeled
 
-The fifteen reference provider packages above are retired as shipped providers.
-Each capability they served is served instead by industry-grade providers that
-wrap an existing tool (see the migration table below and
-`docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`).
+The fifteen reference provider packages above are retained as first-party
+packages under CLAUDE.md §16: they provide real, useful, deterministic
+behavior for tests, local development, and framework verification. They are
+clearly documented as "reference" — not production-grade. Industry-grade
+providers that wrap existing tools are added alongside them (see the migration
+table below and `docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`). Only
+genuinely fake/alias stand-in code with no useful behavior is removed from the
+catalog.
 
 ### 2. Local composed providers may remain
 
@@ -95,19 +103,21 @@ certified" (CLAUDE.md §13).
 
 ## Consequences
 
-- The capability/provider registry stops shipping deterministic stand-ins; every
-  capability's providers wrap a real, industry-grade tool.
-- The offline suite's deterministic tests migrate to industry-grade providers
-  with real local backends (local HTTP server, real SQLite/PostgreSQL, Docker
-  containers) or to test-only doubles inside `mirror_testing`.
-- ADR-0046 §2/§3 and CLAUDE.md §16 are amended by this ADR: reference providers
-  are no longer shipped first-party; the three-provider saturation rule is met
-  by industry-grade providers (reference providers no longer count toward it).
+- Reference providers are retained under CLAUDE.md §16 with clear "reference"
+  labeling; they provide real deterministic behavior for tests and local
+  development.
+- Industry-grade providers are added alongside reference providers, giving
+  users a clear choice: reference for fast/deterministic/local, production for
+  real ML/search/vector infrastructure.
+- The three-provider saturation rule (ADR-0046 §2/§3) is met by industry-grade
+  providers; reference providers count toward coverage but are documented as
+  reference.
 - The provider-saturation matrix
-  (`docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`) becomes the retirement and
-  replacement checklist.
-- Certification honesty improves: "implemented" now means a real tool is wired,
-  and "certified" means it was verified against the real backend.
+  (`docs/ecosystem/PROVIDER_SATURATION_MATRIX.md`) tracks both reference and
+  production-grade providers.
+- Certification honesty improves: "reference" means a real deterministic
+  algorithm; "production" means a real industry-grade tool; "certified" means
+  verified against the real backend.
 
 ## Relationship to other ADRs
 

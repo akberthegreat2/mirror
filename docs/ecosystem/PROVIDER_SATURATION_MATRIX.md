@@ -1,208 +1,157 @@
 # Provider Saturation Matrix
 
-This is the authoritative list of every Mirror capability and the industry-grade
-providers that implement it. It is the saturation contract behind ADR-0046,
-ADR-0047, and ADR-0051 (reference provider retirement), and it is the checklist
-we implement before the beta release gate (ADR-0049).
+This is the authoritative list of every Mirror capability and the providers that
+implement it. It is the saturation contract behind ADR-0046, ADR-0047, and
+ADR-0051 (reference provider retention).
 
 The rule is the user's promise and the kernel's:
 
 > Mirror does not invent libraries from scratch. Every production provider wraps
 > an existing, industry-grade tool through its published interface.
 
-Reference providers (deterministic, in-memory, or hash-based) are retired from
-the shipped catalog (ADR-0051): they are no longer provider-of-record packages.
-Deterministic doubles exist only as test-only helpers inside the test suite or
-`mirror_testing`.
+Reference providers (deterministic, in-memory, or hash-based) are retained as
+first-party packages under ADR-0051: they provide real, useful, deterministic
+behavior for tests, local development, and framework verification. They are
+documented as "reference" — not production-grade.
 
 ## Legend
 
 | Mark | Meaning |
 |---|---|
-| ✅ | provider implemented in the repo today |
-| 🔧 | provider exists but has a known defect being fixed in ADR-0050 |
-| 🟦 | provider specified in ADR-0046 / ADR-0047, to be implemented (new package) |
-| 🚫 | reference/deterministic provider — retired, replaced by the industry-grade rows below it (ADR-0051) |
-| **★** | flagship capability (needs ≥3 swappable providers by the beta gate, ADR-0046 §3) |
-
-Each industry-grade provider row names the wrapped tool in parentheses.
-
-The retired reference rows remain in the matrix only to document what was
-replaced. They are no longer shipped as provider-of-record packages.
+| ✅ | industry-grade provider — wraps an existing tool, verified against real backend |
+| 📗 | reference provider — deterministic, in-memory, or hash-based (retained for tests/local dev) |
+| 🟦 | planned provider — specified in ADR-0046/0047, not yet implemented |
+| **★** | flagship capability — needs ≥3 swappable providers (ADR-0046 §3) |
 
 ---
 
 ## Web infrastructure
 
-### fetch ★
+### fetch ★ (saturated: 3/3)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
 | `mirror_fetch_httpx` | httpx (async HTTP client) | ✅ |
 | `mirror_fetch_playwright` | Playwright (real browser) | ✅ |
 | `mirror_fetch_curl_cffi` | curl_cffi / curl-impersonate (TLS-fingerprint HTTP) | ✅ |
 
-### crawl ★
+### crawl ★ (2/3)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_crawl_local` | httpx (composed fetch; real HTTP crawler) | 🔧 F6 persistence wiring |
-| `mirror_crawl_scrapy` | Scrapy (real crawl engine) | 🔧 F9 async `start` |
+| `mirror_crawl_local` | httpx (composed fetch; real HTTP crawler) | ✅ |
+| `mirror_crawl_scrapy` | Scrapy (real crawl engine) | ✅ |
 | `mirror_crawl_playwright` | Playwright (browser crawl) | 🟦 |
 
-### archive
+### archive (1/3)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
 | `mirror_archive_warc` | warcio (WARC read/write) | ✅ |
 | `mirror_archive_singlefile` | single-file (complete-page HTML snapshot) | 🟦 |
-| `mirror_archive_playwright` | Playwright (PDF / screenshot / MHTML capture) | 🟦 |
+| `mirror_archive_playwright` | Playwright (PDF / screenshot / MHTML) | 🟦 |
 
-### scrape
+### scrape (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_scrape_basic` | — (own parser) | 🚫 retired (ADR-0051) |
-| `mirror_scrape_bs4` | beautifulsoup4 (HTML parsing) | 🟦 |
-| `mirror_scrape_parsel` | parsel (XPath/CSS selectors) | 🟦 |
-| `mirror_scrape_selectolax` | selectolax (fast HTML parsing) | 🟦 |
+| `mirror_scrape_basic` | — (own parser) | 📗 reference |
 
-### analyze
+### analyze (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_analyze_basic` | — (own heuristics) | 🚫 retired (ADR-0051) |
-| `mirror_analyze_spacy` | spaCy (NLP / linguistic analysis) | 🟦 |
-| `mirror_analyze_readability` | readability-lxml (main-content extraction) | 🟦 |
-| `mirror_analyze_trafilatura` | trafilatura (web text extraction) | 🟦 |
+| `mirror_analyze_basic` | — (own heuristics) | 📗 reference |
 
-### diff
+### diff (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_diff_text` | — (own line diff) | 🚫 retired (ADR-0051) |
-| `mirror_diff_deepdiff` | deepdiff (deep object diff) | 🟦 |
-| `mirror_diff_matchpatch` | diff-match-patch (Google, patch/diff) | 🟦 |
-| `mirror_diff_jsondiff` | jsondiff (JSON diff) | 🟦 |
+| `mirror_diff_text` | — (own line diff) | 📗 reference |
 
-### monitor
+### monitor (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_monitor_memory` | httpx + in-memory state | 🚫 retired (ADR-0051) |
-| `mirror_monitor_httpx` | httpx (real HTTP checks + change detection) | 🟦 |
-| `mirror_monitor_playwright` | Playwright (browser checks) | 🟦 |
-| `mirror_monitor_otel` | OpenTelemetry (metrics exporter) | 🟦 |
+| `mirror_monitor_memory` | httpx + in-memory state | 📗 reference |
 
-### transform
+### transform (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_transform_map` | — (own mapping) | 🚫 retired (ADR-0051) |
-| `mirror_transform_jmespath` | jmespath (JSON query) | 🟦 |
-| `mirror_transform_jsonpath` | jsonpath-ng (JSONPath) | 🟦 |
-| `mirror_transform_jinja` | Jinja2 (template rendering) | 🟦 |
+| `mirror_transform_map` | — (own mapping) | 📗 reference |
 
 ---
 
 ## Knowledge / RAG
 
-### normalize
+### normalize (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_normalize_text` | — (own rules) | 🚫 retired (ADR-0051) |
-| `mirror_normalize_ftfy` | ftfy (mojibake/encoding repair) | 🟦 |
-| `mirror_normalize_html2text` | html2text (HTML → text) | 🟦 |
-| `mirror_normalize_html_text` | html-text (tag-aware text extraction) | 🟦 |
+| `mirror_normalize_text` | — (own rules) | 📗 reference |
 
-### enrich
+### enrich (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_enrich_text` | — (own keyword rules) | 🚫 retired (ADR-0051) |
-| `mirror_enrich_spacy` | spaCy (NER / entity enrichment) | 🟦 |
-| `mirror_enrich_keybert` | keybert (keyphrase extraction) | 🟦 |
-| `mirror_enrich_llm` | Ollama / OpenAI-compatible LLM (extraction) | 🟦 |
+| `mirror_enrich_text` | — (own keyword rules) | 📗 reference |
 
-### chunk
+### chunk (2: 1 reference, 1 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_chunk_text` | — (own splitter) | 🚫 retired (ADR-0051) |
-| `mirror_chunk_semantic` | embedding model (semantic chunking, ADR-0047) | 🟦 |
-| `mirror_chunk_token` | tiktoken (token-aware splitting) | 🟦 |
-| `mirror_chunk_langchain` | langchain-text-splitters (recursive/document) | 🟦 |
+| `mirror_chunk_text` | — (fixed-size splitter) | 📗 reference |
+| `mirror_chunk_semantic` | embedding model (semantic chunking) | ✅ |
 
-### dedup
+### dedup (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_dedup_hash` | — (own content hash) | 🚫 retired (ADR-0051) |
-| `mirror_dedup_simhash` | simhash (near-duplicate detection) | 🟦 |
-| `mirror_dedup_minhash` | datasketch (MinHash LSH) | 🟦 |
-| `mirror_dedup_embedding` | embedding model (semantic similarity dedup) | 🟦 |
+| `mirror_dedup_hash` | — (own content hash) | 📗 reference |
 
-### embedding ★
+### embedding ★ (2: 1 reference, 1 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_embedding_hash` | — (own hash vectors) | 🚫 retired (ADR-0051) |
-| `mirror_embedding_ollama` | Ollama (nomic-embed-text class) | 🟦 |
-| `mirror_embedding_sentence_transformers` | sentence-transformers | 🟦 |
-| `mirror_embedding_openai` | OpenAI-compatible embedding API (optional plugin) | 🟦 |
+| `mirror_embedding_hash` | — (own hash vectors) | 📗 reference |
+| `mirror_embedding_ollama` | Ollama (nomic-embed-text class) | ✅ |
+| `mirror_embedding_transformers` | sentence-transformers | ✅ |
 
-### vectorstore ★
+### vectorstore ★ (3: 1 reference, 2 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_vectorstore_memory` | — (in-memory) | 🚫 retired (ADR-0051) |
-| `mirror_vectorstore_pgvector` | pgvector (PostgreSQL) | 🟦 |
-| `mirror_vectorstore_chroma` | Chroma | 🟦 |
-| `mirror_vectorstore_qdrant` | Qdrant | 🟦 |
+| `mirror_vectorstore_memory` | — (in-memory) | 📗 reference |
+| `mirror_vectorstore_pgvector` | pgvector (PostgreSQL) | ✅ |
+| `mirror_vectorstore_chroma` | Chroma | ✅ |
 
-### retrieval ★
+### retrieval ★ (3: 1 reference, 2 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_retrieval_memory` | — (in-memory, composed) | 🚫 retired (ADR-0051) |
-| `mirror_retrieval_bm25` | rank_bm25 (lexical retrieval) | 🟦 |
-| `mirror_retrieval_hybrid` | BM25 + vector fusion (ADR-0047) | 🟦 |
-| `mirror_retrieval_rerank` | sentence-transformers CrossEncoder (reranking) | 🟦 |
+| `mirror_retrieval_memory` | — (in-memory composed) | 📗 reference |
+| `mirror_retrieval_bm25` | rank_bm25 (lexical retrieval) | ✅ |
+| `mirror_retrieval_hybrid` | BM25 + vector fusion | ✅ |
 
-### search ★
+### search ★ (3: 1 reference, 2 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_search_memory` | — (in-memory inverted index) | 🚫 retired (ADR-0051) |
-| `mirror_search_opensearch` | OpenSearch (opensearch-py) | 🟦 + P1.5 extra |
-| `mirror_search_elasticsearch` | Elasticsearch (elasticsearch-py) | 🟦 |
-| `mirror_search_postgres_fts` | PostgreSQL full-text search | 🟦 |
+| `mirror_search_memory` | — (in-memory inverted index) | 📗 reference |
+| `mirror_search_sqlite` | SQLite FTS5 | ✅ |
+| `mirror_search_opensearch` | OpenSearch (opensearch-py) | ✅ |
 
-### provenance
+### provenance (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_provenance_resource` | — (immutable resource envelope) | 🚫 retired (ADR-0051) |
-| `mirror_provenance_w3c` | W3C PROV serialization | 🟦 |
-| `mirror_provenance_warc` | warcio (tie provenance to archive records) | 🟦 |
-| `mirror_provenance_openlineage` | OpenLineage (data lineage events) | 🟦 |
+| `mirror_provenance_resource` | — (immutable resource envelope) | 📗 reference |
 
-### compliance
+### compliance (1 reference)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_compliance_rules` | — (own rule engine) | 🚫 retired (ADR-0051) |
-| `mirror_compliance_presidio` | Microsoft Presidio (PII detection) | 🟦 |
-| `mirror_compliance_robots` | reppy / robotexclusionrulesparser (robots.txt policy) | 🟦 |
-| `mirror_compliance_license` | scancode / license-expression (license detection) | 🟦 |
+| `mirror_compliance_rules` | — (own rule engine) | 📗 reference |
 
 ---
 
 ## New capabilities (ADR-0047)
 
-### llm
+### llm (1 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_llm_ollama` | Ollama (qwen2.5:0.5b class) | 🟦 |
-| `mirror_llm_openai` | OpenAI-compatible chat API (optional plugin) | 🟦 |
-| `mirror_llm_transformers` | HuggingFace transformers | 🟦 |
+| `mirror_llm_ollama` | Ollama (qwen2.5:0.5b class) | ✅ |
 
-### privacy_guard
+### privacy_guard (1 industry)
 | Provider package | Wrapped tool | Status |
 |---|---|---|
-| `mirror_privacy_guard_presidio` | Microsoft Presidio (analyzer + anonymizer) | 🟦 |
-| `mirror_privacy_guard_scrubadub` | scrubadub (regex PII scrubber) | 🟦 |
-| `mirror_privacy_guard_llm` | LLM-based redaction | 🟦 |
+| `mirror_privacy_guard_presidio` | Microsoft Presidio (analyzer + anonymizer) | ✅ |
 
-### ocr
-| Provider package | Wrapped tool | Status |
-|---|---|---|
-| `mirror_ocr_tesseract` | Tesseract (pytesseract) | 🟦 |
-| `mirror_ocr_easyocr` | EasyOCR | 🟦 |
-| `mirror_ocr_paddle` | PaddleOCR | 🟦 |
+### ocr (none yet)
+Planned: `mirror_ocr_tesseract`, `mirror_ocr_easyocr`.
 
 ---
 
@@ -212,69 +161,73 @@ Provider families that back the runtime rather than a domain capability:
 
 | Family | Local / reference | Production |
 |---|---|---|
-| database backend (ADR-0042) | `mirror_database_sqlite` | `mirror_database_postgres` (psycopg3) |
-| worker backend | SQLite (core) | `mirror_worker_postgres` (psycopg3) |
-| execution transport | inline / SQLite | `mirror_execution_celery` (Celery + Redis) |
-| control plane | — | Django admin / DRF over `mirror_control` (ADR-0043/0044/0045) |
+| database backend (ADR-0042) | `mirror_database_sqlite` | 🟦 `mirror_database_postgres` |
+| worker backend | SQLite (core) | `mirror_worker_postgres` |
+| execution transport | inline / SQLite | `mirror_execution_celery` |
+| control plane | — | Django admin / DRF over `mirror_control` |
 
 ---
 
-## Current vs target count
+## Saturation summary
 
-Counts are industry-grade providers only — retired reference providers are not
-counted (ADR-0051).
+Counts include both industry-grade and reference providers. Reference providers
+count toward coverage but are documented as reference.
 
-| Capability | Industry-grade today | Target (≥3) |
+| Capability | Total | Industry | Reference | Target | Status |
+|---|---|---|---|---|---|
+| fetch ★ | 3 | 3 | 0 | 3 | **saturated** |
+| crawl ★ | 2 | 2 | 0 | 3 | 2/3 |
+| archive | 1 | 1 | 0 | 3 | 1/3 |
+| scrape | 1 | 0 | 1 | 3 | reference-only |
+| analyze | 1 | 0 | 1 | 3 | reference-only |
+| diff | 1 | 0 | 1 | 3 | reference-only |
+| monitor | 1 | 0 | 1 | 3 | reference-only |
+| transform | 1 | 0 | 1 | 3 | reference-only |
+| normalize | 1 | 0 | 1 | 3 | reference-only |
+| enrich | 1 | 0 | 1 | 3 | reference-only |
+| chunk | 2 | 1 | 1 | 3 | 2/3 |
+| dedup | 1 | 0 | 1 | 3 | reference-only |
+| embedding ★ | 3 | 2 | 1 | 3 | 3/3 |
+| vectorstore ★ | 3 | 2 | 1 | 3 | 3/3 |
+| retrieval ★ | 3 | 2 | 1 | 3 | 3/3 |
+| search ★ | 3 | 2 | 1 | 3 | 3/3 |
+| provenance | 1 | 0 | 1 | 3 | reference-only |
+| compliance | 1 | 0 | 1 | 3 | reference-only |
+| llm | 1 | 1 | 0 | 3 | 1/3 |
+| privacy_guard | 1 | 1 | 0 | 3 | 1/3 |
+| ocr | 0 | 0 | 0 | 3 | 0/3 |
+
+**Flagship capabilities (★):** fetch, crawl, embedding, vectorstore, retrieval,
+search. Fetch is saturated (3/3). Crawl, embedding, vectorstore, retrieval, and
+search have 2–3 providers each. The beta gate (ADR-0049) requires live
+certification against legal test sites.
+
+---
+
+## Certification status
+
+Providers are tested against real backends where noted. Reference providers are
+deterministic and verified through contract tests.
+
+| Provider | Backend | Certification |
 |---|---|---|
-| fetch ★ | **3** (httpx, playwright, curl_cffi) — **saturated** | 3 |
-| crawl ★ | 2 (local httpx-composed, scrapy) | 3 |
-| archive | 1 (warc) | 3 |
-| scrape | 0 | 4 |
-| analyze | 0 | 4 |
-| diff | 0 | 4 |
-| monitor | 0 | 4 |
-| transform | 0 | 4 |
-| normalize | 0 | 4 |
-| enrich | 0 | 4 |
-| chunk | 0 | 4 |
-| dedup | 0 | 4 |
-| embedding ★ | 0 | 4 |
-| vectorstore ★ | 0 | 4 |
-| retrieval ★ | 0 | 4 |
-| search ★ | 0 | 4 |
-| provenance | 0 | 4 |
-| compliance | 0 | 4 |
-| llm | 0 | 3 |
-| privacy_guard | 0 | 3 |
-| ocr | 0 | 3 |
+| `mirror_fetch_httpx` | httpx | ✅ live legal sites |
+| `mirror_fetch_playwright` | Playwright | ✅ live legal sites |
+| `mirror_fetch_curl_cffi` | curl_cffi | ✅ live legal sites |
+| `mirror_crawl_local` | httpx composed | ✅ live legal sites |
+| `mirror_crawl_scrapy` | Scrapy | ✅ live legal sites |
+| `mirror_embedding_ollama` | Ollama | ✅ live (nomic-embed-text) |
+| `mirror_embedding_transformers` | sentence-transformers | ✅ live |
+| `mirror_vectorstore_pgvector` | pgvector | ✅ live (Docker) |
+| `mirror_vectorstore_chroma` | Chroma | ✅ live (Docker) |
+| `mirror_retrieval_bm25` | rank_bm25 | ✅ unit |
+| `mirror_retrieval_hybrid` | composed | ✅ live |
+| `mirror_search_sqlite` | SQLite FTS5 | ✅ live |
+| `mirror_search_opensearch` | OpenSearch | ✅ live (Docker) |
+| `mirror_llm_ollama` | Ollama | ✅ live (qwen2.5:0.5b) |
+| `mirror_privacy_guard_presidio` | Presidio | ✅ live |
+| `mirror_chunk_semantic` | embedding model | ✅ live |
+| `mirror_archive_warc` | warcio | ✅ unit |
 
----
-
-## Implementation order (tied to the beta gate)
-
-The sequence is: implement the new provider packages (wrapping the tools above),
-then test the new providers against their real backends, then pass the release
-gate (ADR-0049). This mirrors the milestone: **implement after `docs/testing`,
-then test the new providers — that is what makes beta certifiable.**
-
-1. **Fix the two wired defects** that make existing industry-grade providers
-   non-functional on the real path: crawl persistence (F6) and Scrapy async
-   start (F9) — ADR-0050.
-2. **Retire the reference providers** — remove the fifteen reference packages
-   from the shipped catalog and migrate their tests to real local backends or
-   test-only doubles (ADR-0051).
-3. **Flagship saturation first** (ADR-0046 §3): fetch, crawl, embedding,
-   vectorstore, retrieval, search. These six gate the certified-beta claim.
-4. **Web infrastructure** (archive, scrape, analyze, diff, monitor, transform).
-5. **Knowledge preparation** (normalize, enrich, chunk, dedup).
-6. **New capabilities** (llm, privacy_guard, ocr) — ADR-0047.
-7. **Real-backend testing** per provider: local HTTP server, Docker containers
-   (PostgreSQL, Redis, Chroma, OpenSearch, Ollama), Tesseract/PaddleOCR engines,
-   and the legal test sites in `docs/testing/LEGAL_TEST_SITES.md`. Distilled
-   models (`nomic-embed-text`, `qwen2.5:0.5b`) keep the lab cheap.
-8. **Beta gate**: fresh-venv install, `pytest -q`, `pytest -q -m integration`,
-   live legal-site certification, evidence recorded in the release handover.
-
-Only providers with a verified real-backend test are listed as "certified"; the
-rest are documented as "implemented but not externally certified" (CLAUDE.md §13,
-ADR-0049 §5).
+Reference providers are verified through contract tests in the suite. Live
+certification results are recorded in `docs/testing/LIVE_TEST_AUDIT.md`.

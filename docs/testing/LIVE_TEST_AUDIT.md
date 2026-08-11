@@ -6,9 +6,9 @@ certification evidence required by `docs/RELEASE_CHECKLIST.md` (ADR-0049) and
 the project rule that documentation is not proof of implementation (CLAUDE.md
 §11–14): here the real execution is recorded, per test.
 
-- Audit date: 2026-08-11
+- Audit date: 2026-08-11T15:12Z
 - Branch: `main` (merge of `beta-ecosystem`)
-- Baseline commit: `9e76c8f`
+- Baseline commit: `90e9ad1`
 - Environment: Kali Linux (7.0.12+kali-amd64), Python 3.13 in
   `/home/tamim/.venv` (system python is PEP-668 locked)
 - Docker lab: `docker compose up` — postgres (5432), pgvector (5433), redis
@@ -59,12 +59,12 @@ MIRROR_LIVE_TESTS=1 /home/tamim/.venv/bin/python -m pytest \
   tests/integration/test_legal_site_certification.py -m live -q
 ```
 
-36 tests across 6 classes. Result: **28 passed, 8 failed** in 108.99s.
+36 tests across 6 classes. Result: **28 passed, 8 failed** in 169.47s.
 
-The 8 failures are all httpbin-dependent tests; httpbin.org returned 503 or
-was unreachable during the test window. This is the documented environmental
-limitation for public Tier-2 services. Verified at 2026-08-11T08:20Z that
-httpbin.org was unreachable (curl returned 000).
+The 8 failures are all httpbin-dependent tests; httpbin.org returned 503/504
+during the test window. This is the documented environmental limitation for
+public Tier-2 services. Verified at 2026-08-11T15:09Z that httpbin.org was
+returning 503 Service Temporarily Unavailable.
 
 ### TestFetchCertification — raw HTTPX over legal sites (12 tests)
 

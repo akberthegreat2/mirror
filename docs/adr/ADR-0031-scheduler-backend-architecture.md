@@ -96,4 +96,6 @@ Those are owned by their respective core subsystems.
 
 ## Status Summary
 
-This ADR is Proposed until the scheduler contract exists in `mirror_core` and at least one scheduler backend is implemented and tested against the shared metadata store contract.
+Ratified 2026-08-10. The scheduler contract exists in `mirror_core`
+(`SchedulerBackend` protocol) with a coordinator integrated with the metadata
+store and worker backend.

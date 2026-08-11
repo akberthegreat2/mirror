@@ -19,7 +19,7 @@ capabilities do not yet have three swappable providers:
   provider.
 
 The user requirement is explicit: at least three swappable providers/backends
-per flagship capability, and every production provider must implement an
+per capability, every single of them, and every production provider must implement an
 existing, industry-grade tool — not code written from scratch. Reference
 providers may stay for tests and local development, but they must be labeled
 reference and never presented as production.
@@ -66,7 +66,7 @@ retired by ADR-0051 and replaced with industry-grade providers.
 
 ### 3. Saturation rule for beta
 
-Each flagship capability MUST have at least three swappable providers by the
+Each capability MUST have at least three swappable providers by the
 beta release gate, or the capability is documented as "not yet saturated" and
 kept out of the certified list. The flagship set is:
 

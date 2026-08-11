@@ -2191,34 +2191,35 @@ redesign.
 
 ------------------------------------------------------------------------
 
-# 39. Resolution status (2026-08-10)
+# 39. Resolution status (2026-08-11)
 
-Status of every finding as of the beta release plan. "Resolved" means the
-defect is fixed on `beta-ecosystem` and covered by the green suite (312 passed,
-4 skipped); "Assigned" means the fix is specified in the referenced ADR/PR note
-and implemented in the corresponding follow-up pass.
+Status of every finding as of the beta structural phase. "Resolved" means the
+defect is fixed on `main`, verified in code, and covered by the green suite
+(588 passed, 43 skipped, 0 failed). Every "Assigned" row below has since been
+implemented through the referenced ADR; the reference column now points at both
+the ADR and the commit where the fix landed.
 
 ## Red findings
 
 | Finding | Status | Reference |
 |---|---|---|
-| Red #1 — expired-job requeue does not republish to Celery (P0.1) | Assigned | ADR-0048, `PR_BETA_DISTRIBUTED_RECOVERY.md` |
-| Red #2 — worker job marked SUCCEEDED regardless of result (P1.1) | Assigned | ADR-0048, `PR_BETA_DISTRIBUTED_RECOVERY.md` |
-| Red #3 — Local Crawl persistence flags not wired (P1.2) | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
-| Red #4 — manifest advertises operations the REST API does not implement (P1.3) | Assigned | ADR-0045, `PR_BETA_CONTROL_OPS_AND_SECURITY.md` |
-| Red #5 — REST control plane has no auth/permission defaults (P0.2) | Assigned | ADR-0045, `PR_BETA_CONTROL_OPS_AND_SECURITY.md` |
-| Red #6 — "real-world" tests monkeypatch provider methods (P1.4) | Assigned | ADR-0049, `PR_BETA_RELEASE_GATE.md` |
+| Red #1 — expired-job requeue does not republish to Celery (P0.1) | Resolved | ADR-0048, commit `b299b06` — reaper republishes requeued jobs to their execution-class queue (`transport.py` `requeue_expired`) |
+| Red #2 — worker job marked SUCCEEDED regardless of result (P1.1) | Resolved | ADR-0048, commit `b299b06` — terminal mapping is `SUCCEEDED` / `FAILED` / `CANCELLED`, never inferred from a missing exception |
+| Red #3 — Local Crawl persistence flags not wired (P1.2) | Resolved | ADR-0050, commit `35f680d` — `persist_discovered_urls` / `store_pages` receive stores through the real composition path |
+| Red #4 — manifest advertises operations the REST API does not implement (P1.3) | Resolved | ADR-0045, commit `0d7ca1b` — all advertised operations implemented once in `ControlService` |
+| Red #5 — REST control plane has no auth/permission defaults (P0.2) | Resolved | ADR-0045, commit `0d7ca1b` — fail-closed authentication, permissions, and project isolation |
+| Red #6 — "real-world" tests monkeypatch provider methods (P1.4) | Resolved | ADR-0049, commits `307c6e1`, `90e9ad1` — live certification suite against legal sites; tests that mock are named as contract/integration tests |
 
 ## P1 findings
 
 | Finding | Status | Reference |
 |---|---|---|
-| P1.1 — worker-job terminal status | Assigned | ADR-0048, `PR_BETA_DISTRIBUTED_RECOVERY.md` |
-| P1.2 — Local Crawl persistence integration | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
-| P1.3 — advertised control-plane actions | Assigned | ADR-0045, `PR_BETA_CONTROL_OPS_AND_SECURITY.md` |
-| P1.4 — real external-backend integration tests | Assigned | ADR-0049, `PR_BETA_RELEASE_GATE.md`; `PR_BETA_PROVIDER_SATURATION.md`; `PR_BETA_RAG_ECOSYSTEM.md` |
-| P1.5 — package optional dependencies (YAML, OpenSearch) | Partially resolved | YAML extra resolved (commit `56e17f0`); OpenSearch extra Assigned → ADR-0050, `PR_BETA_RELEASE_GATE.md` |
-| P1.6 — broken package links in docs | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
+| P1.1 — worker-job terminal status | Resolved | ADR-0048, commit `b299b06` |
+| P1.2 — Local Crawl persistence integration | Resolved | ADR-0050, commit `35f680d` + crawl-persistence tests |
+| P1.3 — advertised control-plane actions | Resolved | ADR-0045, commit `0d7ca1b` |
+| P1.4 — real external-backend integration tests | Resolved | ADR-0049, commits `307c6e1`, `90e9ad1` — live legal-site suite (28/36 passing, 8 httpbin-environmental) |
+| P1.5 — package optional dependencies (YAML, OpenSearch) | Resolved | YAML extra `56e17f0`; OpenSearch extra declared in `mirror_search_opensearch/pyproject.toml` (ADR-0050) |
+| P1.6 — broken package links in docs | Resolved | `docs/providers/index.md` uses underscore directory paths; all internal links validate (ADR-0050) |
 
 ## P2 findings (backlog)
 

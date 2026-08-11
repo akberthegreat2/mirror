@@ -200,12 +200,13 @@ Blocker IDs reference the running findings log at `/home/tamim/mirror-e2e/.work/
 
 ---
 
-## Resolution status (2026-08-10)
+## Resolution status (2026-08-11)
 
-Status of every finding as of the beta release plan. "Resolved" means the
-defect is fixed on `beta-ecosystem` and covered by the green suite (312 passed,
-4 skipped); "Assigned" means the fix is specified in the referenced ADR/PR note
-and implemented in the corresponding follow-up pass.
+Status of every finding as of the beta structural phase. "Resolved" means the
+defect is fixed on `main`, verified in code, and covered by the green suite
+(588 passed, 43 skipped, 0 failed). Every "Assigned" row below has since been
+implemented through the referenced ADR; the reference column now points at both
+the ADR and the commit where the fix landed.
 
 | ID | Finding | Status | Reference |
 |---|---|---|---|
@@ -213,17 +214,17 @@ and implemented in the corresponding follow-up pass.
 | F2 | Django admin test fails (URLconf) | Resolved | mechanical-blockers pass |
 | F3 | `yaml` extra declared but nonexistent | Resolved | commit `56e17f0` |
 | F4 | Architecture test fails after clean install | Resolved | mechanical-blockers pass |
-| F5 | Reaper never republishes requeued jobs | Assigned | ADR-0048, `PR_BETA_DISTRIBUTED_RECOVERY.md` |
-| F6 | Crawl persistence not wired | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
+| F5 | Reaper never republishes requeued jobs | Resolved | ADR-0048, commit `b299b06` — republish in `transport.py:requeue_expired` |
+| F6 | Crawl persistence not wired | Resolved | ADR-0050, commit `35f680d` — stores received through real composition |
 | F7 | `-m integration` gate red | Resolved | mechanical-blockers pass (lifecycle test fixed; suite green) |
 | F8 | Distributed fingerprint mismatch | Resolved | commit `56d014b` |
-| F9 | Scrapy sync `start_requests` | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
+| F9 | Scrapy sync `start_requests` | Resolved | ADR-0050 — `async def start` in `mirror_crawl_scrapy/provider.py` |
 | F10 | analyze / diff / scrape uncomposable | Resolved | commit `56e17f0` |
 | F11 | No two-capability pipeline runnable | Resolved | commit `6422e58` |
-| O1 | `worker-check` advertises availability without checking | Assigned | ADR-0049, `PR_BETA_RELEASE_GATE.md` |
-| O2 | Release checklist not literally reproducible | Assigned | ADR-0049, `PR_BETA_RELEASE_GATE.md` |
-| O3 | Checkpoint restore imports arbitrary module paths | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
-| O4 | Checkpoint serialization bypasses safe metadata encoding | Assigned | ADR-0050, `PR_BETA_RELEASE_GATE.md` |
+| O1 | `worker-check` advertises availability without checking | Resolved | ADR-0049 — now an honest reachability probe (`worker_check` in `mirror_cli/main.py`) |
+| O2 | Release checklist not literally reproducible | Resolved | ADR-0049 — live legal-site gate + Docker lab + fresh-venv certification in `docs/RELEASE_CHECKLIST.md` |
+| O3 | Checkpoint restore imports arbitrary module paths | Resolved | ADR-0050 — `restore_model` resolves only registered model types |
+| O4 | Checkpoint serialization bypasses safe metadata encoding | Resolved | ADR-0050 — checkpoint payloads round-trip through the registered-type registry |
 
 Structural follow-up (beyond the blockers): the independent swappable database
 backend (ADR-0042), framework-neutral interface layer (ADR-0043), Django as a
